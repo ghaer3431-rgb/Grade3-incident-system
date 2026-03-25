@@ -391,7 +391,7 @@
       const displayName = user.displayName || '';
       return teacherAccounts.find((t) =>
         (t.email && t.email.toLowerCase() === email) || (!t.email && t.name === displayName)
-      ) || teacherAccounts[0];
+      ) || null;
     }
 
     function StatCard({ title, value, hint }) {
