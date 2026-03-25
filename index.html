@@ -403,6 +403,88 @@
       );
     }
 
+    function MiniBar({ label, value, max }) {
+      const width = max > 0 ? Math.max((value / max) * 100, value > 0 ? 10 : 0) : 0;
+      return React.createElement('div', { className: 'space-y-1' },
+        React.createElement('div', { className: 'flex items-center justify-between text-sm' },
+          React.createElement('span', null, label),
+          React.createElement('span', { className: 'font-semibold' }, value)
+        ),
+        React.createElement('div', { className: 'h-2 rounded-full bg-slate-100' },
+          React.createElement('div', {
+            className: 'h-2 rounded-full bg-slate-700',
+            style: { width: `${width}%` }
+          })
+        )
+      );
+    }
+
+    function getWeekKey(dateLike) {
+      const d = new Date(dateLike);
+      if (Number.isNaN(d.getTime())) return '기타';
+      const first = new Date(d.getFullYear(), 0, 1);
+      const diff = Math.floor((d - first) / 86400000);
+      const week = Math.ceil((diff + first.getDay() + 1) / 7);
+      return `${d.getFullYear()}-${String(week).padStart(2, '0')}주`;
+    }
+
+    function getLastNWeekKeys(n = 4) {
+      const result = [];
+      const now = new Date();
+      for (let i = n - 1; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i * 7);
+        result.push(getWeekKey(d));
+      }
+      return result;
+    }
+
+    function getStudentTrendLabel(prevCount, recentCount) {
+      if (prevCount >= 2 && recentCount === 0) return '성장중';
+      if (recentCount > prevCount) return '주의';
+      if (recentCount < prevCount) return '개선';
+      return '유지';
+    }
+
+    function CommentBox({ incidentId, comments, onAddComment }) {
+      const [text, setText] = useState('');
+
+      return React.createElement('div', { className: 'mt-4 rounded-2xl border border-slate-200 bg-white p-4' },
+        React.createElement('div', { className: 'mb-3 text-sm font-semibold text-slate-700' }, '지도방안 코멘트'),
+        React.createElement('div', { className: 'space-y-2' },
+          ...(comments && comments.length
+            ? comments.map((c, idx) =>
+                React.createElement('div', { key: idx, className: 'rounded-2xl bg-slate-50 px-3 py-3' },
+                  React.createElement('div', { className: 'text-xs text-slate-500' },
+                    `${c.writer || '익명'} · ${c.createdAtText || ''}`
+                  ),
+                  React.createElement('div', { className: 'mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700' }, c.text || '')
+                )
+              )
+            : [
+                React.createElement('div', { key: 'empty', className: 'text-sm text-slate-400' }, '아직 등록된 코멘트가 없어요.')
+              ])
+        ),
+        React.createElement('div', { className: 'mt-3 flex flex-col gap-2 md:flex-row' },
+          React.createElement('textarea', {
+            value: text,
+            onChange: (e) => setText(e.target.value),
+            placeholder: '지도방안, 관찰 의견, 협의 내용을 남겨주세요.',
+            className: 'min-h-[90px] flex-1 rounded-2xl border border-slate-200 px-4 py-3 outline-none'
+          }),
+          React.createElement('button', {
+            onClick: async () => {
+              const trimmed = text.trim();
+              if (!trimmed) return;
+              await onAddComment(incidentId, trimmed);
+              setText('');
+            },
+            className: 'rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white md:self-end'
+          }, '코멘트 등록')
+        )
+      );
+    }
+
     function Pill({ children, tone = 'slate' }) {
       return React.createElement('span', { className: `pill pill-${tone}` }, children);
     }
@@ -511,6 +593,73 @@
       const inProgressCount = incidents.filter((i) => i.status === '진행중').length;
       const highCount = incidents.filter((i) => i.severity === '높음').length;
       const repeatedStudents = countsByStudent.filter((s) => s.count >= 2).length;
+      const recentWeekKeys = useMemo(() => getLastNWeekKeys(4), []);
+      const weeklyTrend = useMemo(() => {
+        const base = {};
+        recentWeekKeys.forEach((k) => base[k] = 0);
+
+        incidents.forEach((incident) => {
+          const key = getWeekKey(incident.datetime);
+          if (base[key] !== undefined) base[key] += 1;
+        });
+
+        return recentWeekKeys.map((key) => ({ key, count: base[key] || 0 }));
+      }, [incidents, recentWeekKeys]);
+
+      const weeklyMax = Math.max(...weeklyTrend.map((x) => x.count), 1);
+
+      const completionRate = totalCount
+        ? Math.round((incidents.filter((i) => i.status === '조치완료').length / totalCount) * 100)
+        : 0;
+
+      const highRiskRate = totalCount
+        ? Math.round((highCount / totalCount) * 100)
+        : 0;
+
+      const growthStats = useMemo(() => {
+        const now = new Date();
+        const recentStart = new Date(now);
+        recentStart.setDate(now.getDate() - 14);
+
+        const prevStart = new Date(now);
+        prevStart.setDate(now.getDate() - 28);
+
+        const recentMap = {};
+        const prevMap = {};
+
+        incidents.forEach((incident) => {
+          const incidentDate = new Date(incident.datetime);
+          const students = incident.students || [];
+
+          students.forEach((student) => {
+            if (incidentDate >= recentStart) {
+              recentMap[student] = (recentMap[student] || 0) + 1;
+            } else if (incidentDate >= prevStart && incidentDate < recentStart) {
+              prevMap[student] = (prevMap[student] || 0) + 1;
+            }
+          });
+        });
+
+        const mergedStudents = Array.from(new Set([...Object.keys(recentMap), ...Object.keys(prevMap)]));
+        return mergedStudents.map((student) => {
+          const prevCount = prevMap[student] || 0;
+          const recentCount = recentMap[student] || 0;
+          return {
+            student,
+            prevCount,
+            recentCount,
+            label: getStudentTrendLabel(prevCount, recentCount)
+          };
+        }).sort((a, b) => b.recentCount - a.recentCount);
+      }, [incidents]);
+
+      const growthStudents = growthStats
+        .filter((x) => x.label === '성장중' || x.label === '개선')
+        .slice(0, 6);
+
+      const warningStudents = growthStats
+        .filter((x) => x.label === '주의')
+        .slice(0, 6);
 
       const toggleListValue = (value, list, setter) => {
         setter(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
@@ -590,6 +739,29 @@
         resetForm();
         setView('incidents');
       }
+            
+      async function addCommentToIncident(incidentId, text) {
+        const incident = incidents.find((x) => x.id === incidentId);
+        if (!incident) return;
+
+        const nextComments = [
+          ...(incident.comments || []),
+          {
+            writer: allowedTeacher?.name || authUser?.displayName || '교사',
+            writerEmail: authUser?.email || '',
+            text,
+            createdAtText: new Date().toLocaleString('sv-SE').slice(0, 16).replace('T', ' ')
+          }
+        ];
+
+        await updateDoc(doc(db, 'incidents', incidentId), {
+          comments: nextComments,
+          updatedAt: serverTimestamp(),
+          updatedAtText: new Date().toLocaleString('sv-SE').slice(0, 16).replace('T', ' ')
+        });
+
+        setNotice('코멘트를 등록했어.');
+      }
 
       async function deleteIncident(incidentId) {
         const ok = window.confirm('이 사안을 정말 삭제할까? 삭제 후 복구가 어려울 수 있어.');
@@ -667,8 +839,8 @@
           React.createElement('div', { className: 'mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4' },
             React.createElement(StatCard, { title: '전체 사안 수', value: totalCount, hint: '실시간 공유 데이터' }),
             React.createElement(StatCard, { title: '진행중 사안', value: inProgressCount, hint: '즉시 확인이 필요한 건' }),
-            React.createElement(StatCard, { title: '높음 심각도', value: highCount, hint: '교감/학생부 우선 확인' }),
-            React.createElement(StatCard, { title: '반복 등장 학생', value: repeatedStudents, hint: '2회 이상 연루 학생' })
+            React.createElement(StatCard, { title: '조치완료율', value: `${completionRate}%`, hint: '전체 대비 처리 완료 비율' }),
+            React.createElement(StatCard, { title: '고심각도 비율', value: `${highRiskRate}%`, hint: '높음 심각도 비중' })
           ),
 
           React.createElement('div', { className: 'mb-6 flex flex-wrap gap-2' },
@@ -680,31 +852,82 @@
             )
           ),
 
-          view === 'dashboard' ? React.createElement('div', { className: 'grid gap-6 lg:grid-cols-2' },
-            React.createElement('div', { className: cardStyle + ' p-5' },
-              React.createElement('div', { className: 'mb-4 text-lg font-semibold' }, '반복 등장 학생'),
-              React.createElement('div', { className: 'space-y-3' },
-                ...countsByStudent.slice(0, 8).map((student) =>
-                  React.createElement('div', { key: student.name, className: 'flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3' },
-                    React.createElement('div', { className: 'text-sm font-medium text-slate-700' }, student.name),
-                    React.createElement(Pill, { tone: student.count >= 3 ? 'red' : student.count >= 2 ? 'amber' : 'blue' }, `${student.count}건`)
+                    view === 'dashboard' ? React.createElement('div', { className: 'space-y-6' },
+
+            React.createElement('div', { className: 'grid gap-6 lg:grid-cols-2' },
+              React.createElement('div', { className: cardStyle + ' p-5' },
+                React.createElement('div', { className: 'mb-4 text-lg font-semibold' }, '최근 4주 사안 추세'),
+                React.createElement('div', { className: 'space-y-4' },
+                  ...weeklyTrend.map((row) =>
+                    React.createElement(MiniBar, {
+                      key: row.key,
+                      label: row.key,
+                      value: row.count,
+                      max: weeklyMax
+                    })
+                  )
+                )
+              ),
+
+              React.createElement('div', { className: cardStyle + ' p-5' },
+                React.createElement('div', { className: 'mb-4 text-lg font-semibold' }, '사안 유형별 통계'),
+                React.createElement('div', { className: 'space-y-3' },
+                  ...countsByType.map((type) =>
+                    React.createElement(MiniBar, {
+                      key: type.name,
+                      label: type.name,
+                      value: type.count,
+                      max: Math.max(...countsByType.map((x) => x.count), 1)
+                    })
                   )
                 )
               )
             ),
-            React.createElement('div', { className: cardStyle + ' p-5' },
-              React.createElement('div', { className: 'mb-4 text-lg font-semibold' }, '사안 유형별 통계'),
-              React.createElement('div', { className: 'space-y-3' },
-                ...countsByType.map((type) =>
-                  React.createElement('div', { key: type.name },
-                    React.createElement('div', { className: 'mb-1 flex items-center justify-between text-sm' },
-                      React.createElement('span', null, type.name),
-                      React.createElement('span', { className: 'font-semibold' }, type.count)
-                    ),
-                    React.createElement('div', { className: 'h-3 rounded-full bg-slate-100' },
-                      React.createElement('div', { className: 'h-3 rounded-full bg-slate-700', style: { width: `${Math.max(type.count * 20, type.count ? 12 : 0)}%` } })
+
+            React.createElement('div', { className: 'grid gap-6 lg:grid-cols-3' },
+              React.createElement('div', { className: cardStyle + ' p-5' },
+                React.createElement('div', { className: 'mb-4 text-lg font-semibold' }, '반복 등장 학생'),
+                React.createElement('div', { className: 'space-y-3' },
+                  ...countsByStudent.slice(0, 8).map((student) =>
+                    React.createElement('div', { key: student.name, className: 'flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3' },
+                      React.createElement('div', { className: 'text-sm font-medium text-slate-700' }, student.name),
+                      React.createElement(Pill, { tone: student.count >= 3 ? 'red' : student.count >= 2 ? 'amber' : 'blue' }, `${student.count}건`)
                     )
                   )
+                )
+              ),
+
+              React.createElement('div', { className: cardStyle + ' p-5' },
+                React.createElement('div', { className: 'mb-4 text-lg font-semibold' }, '성장/개선 학생'),
+                React.createElement('div', { className: 'space-y-3' },
+                  ...(growthStudents.length
+                    ? growthStudents.map((row) =>
+                        React.createElement('div', { key: row.student, className: 'rounded-2xl bg-green-50 px-4 py-3' },
+                          React.createElement('div', { className: 'flex items-center justify-between' },
+                            React.createElement('div', { className: 'text-sm font-medium text-slate-800' }, row.student),
+                            React.createElement(Pill, { tone: 'green' }, row.label)
+                          ),
+                          React.createElement('div', { className: 'mt-1 text-xs text-slate-500' }, `이전 2주 ${row.prevCount}건 → 최근 2주 ${row.recentCount}건`)
+                        )
+                      )
+                    : [React.createElement('div', { key: 'empty-growth', className: 'text-sm text-slate-400' }, '표시할 학생이 없어요.')])
+                )
+              ),
+
+              React.createElement('div', { className: cardStyle + ' p-5' },
+                React.createElement('div', { className: 'mb-4 text-lg font-semibold' }, '주의 학생'),
+                React.createElement('div', { className: 'space-y-3' },
+                  ...(warningStudents.length
+                    ? warningStudents.map((row) =>
+                        React.createElement('div', { key: row.student, className: 'rounded-2xl bg-red-50 px-4 py-3' },
+                          React.createElement('div', { className: 'flex items-center justify-between' },
+                            React.createElement('div', { className: 'text-sm font-medium text-slate-800' }, row.student),
+                            React.createElement(Pill, { tone: 'red' }, row.label)
+                          ),
+                          React.createElement('div', { className: 'mt-1 text-xs text-slate-500' }, `이전 2주 ${row.prevCount}건 → 최근 2주 ${row.recentCount}건`)
+                        )
+                      )
+                    : [React.createElement('div', { key: 'empty-warning', className: 'text-sm text-slate-400' }, '표시할 학생이 없어요.')])
                 )
               )
             )
@@ -766,7 +989,13 @@
                 React.createElement('div', { className: 'mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500' },
                   React.createElement('span', null, `작성/추가 교사: ${(item.writers || []).join(', ')}`),
                   React.createElement('span', null, `최근 수정일: ${item.updatedAtText || ''}`)
-                )
+                ),
+                React.createElement(CommentBox, {
+                  incidentId: item.id,
+                  comments: item.comments || [],
+                  onAddComment: addCommentToIncident
+                })
+                                         
               );
             })
           ) : null,
@@ -826,7 +1055,11 @@
               React.createElement('button', { onClick: resetForm, className: 'rounded-2xl bg-slate-200 px-5 py-3 text-sm font-medium text-slate-700' }, '초기화'),
               React.createElement('button', { onClick: saveIncident, className: 'rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white' }, editingId ? '수정 저장' : '사안 등록')
             )
-          ) : null
+          ) : null,
+
+                            React.createElement('div', {
+            className: 'fixed bottom-4 right-4 text-xs text-slate-400 pointer-events-none'
+          }, 'copyrighted by 승이루T')
         )
       );
     }
