@@ -1,837 +1,744 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3학년 학생 사안 공동 기록 시스템</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { background:#f1f5f9; color:#0f172a; }
-    .card { border:1px solid #e2e8f0; background:white; border-radius:24px; box-shadow:0 1px 2px rgba(15,23,42,.05); }
-    .pill { display:inline-flex; align-items:center; border-radius:9999px; padding:4px 12px; font-size:12px; font-weight:600; }
-    .pill-slate { background:#f1f5f9; color:#475569; }
-    .pill-blue { background:#dbeafe; color:#1d4ed8; }
-    .pill-red { background:#fee2e2; color:#b91c1c; }
-    .pill-amber { background:#fef3c7; color:#b45309; }
-    .pill-green { background:#dcfce7; color:#15803d; }
-  </style>
-</head>
-<body>
-  <div id="root"></div>
+import React, { useEffect, useMemo, useState } from 'react';
 
-  <script type="module">
-    import React, { useEffect, useMemo, useState } from "https://esm.sh/react@18";
-    import { createRoot } from "https://esm.sh/react-dom@18/client";
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-    import {
-      getAuth,
-      GoogleAuthProvider,
-      signInWithPopup,
-      signOut,
-      onAuthStateChanged,
-    } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      doc,
-      updateDoc,
-      deleteDoc,
-      onSnapshot,
-      serverTimestamp,
-      query,
-      orderBy,
-      setDoc,
-      getDocs,
-      limit
-    } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+const teacherAccounts = [
+  { name: '안영석', role: '교감' },
+  { name: '남승일', role: '학생부장' },
+  { name: '김지영', role: '3-1담임' },
+  { name: '최원준', role: '3-2담임' },
+  { name: '이보람', role: '3-3담임' },
+  { name: '홍성진', role: '3-4담임' },
+  { name: '서준원', role: '3-5담임' },
+  { name: '문대륜', role: '3-6담임' },
+  { name: '윤정원', role: '생활지도담당' },
+  { name: '김현수', role: '학교폭력담당' },
+  { name: '하초원', role: '안전담당' },
+  { name: '신향미', role: '자치담당' },
+  { name: '서예향', role: '3학년국어' },
+  { name: '김현지', role: '3학년수학' },
+  { name: '양수민', role: '3학년수학' },
+  { name: '정아람', role: '3학년사회' },
+  { name: '김영화', role: '3학년과학' },
+  { name: '김영미', role: '3학년영어' },
+  { name: '박찬영', role: '3학년가정' },
+  { name: '이정남', role: '3학년가정' },
+  { name: '김윤지', role: '3학년미술' },
+];
 
-    const FIREBASE_CONFIG = {
- apiKey: "AIzaSyCYvNkgTi92IMNemv3k827wn0Kdof6Jz-Y",
-    authDomain: "grade3-incident-system.firebaseapp.com",
-    projectId: "grade3-incident-system",
-    storageBucket: "grade3-incident-system.firebasestorage.app",
-    messagingSenderId: "995174784022",
-    appId: "1:995174784022:web:7c76012537063c62eea937"
-};
+const rosterSeed = [
+  '3-1 강다원', '3-1 강민석', '3-1 강인혁', '3-1 김가현', '3-1 김경모', '3-1 김고은', '3-1 김동현', '3-1 김민재', '3-1 김수연', '3-1 김지유', '3-1 김태윤', '3-1 박민준', '3-1 박정환', '3-1 신하랑', '3-1 엄재빈', '3-1 윤상효', '3-1 이도연', '3-1 이동헌', '3-1 이서연', '3-1 이종찬', '3-1 이지수', '3-1 이태연', '3-1 임윤수', '3-1 전채원', '3-1 정주혁', '3-1 조은재', '3-1 최한울',
+  '3-2 강민재', '3-2 고우영', '3-2 김민찬', '3-2 김시윤', '3-2 김예은', '3-2 김유진', '3-2 김지아', '3-2 김현우', '3-2 김효준', '3-2 박건우', '3-2 박유진', '3-2 박지호', '3-2 백서연', '3-2 배지후', '3-2 손현수', '3-2 신예준', '3-2 유정민', '3-2 이도윤', '3-2 이서진', '3-2 이예나', '3-2 이주아', '3-2 정시현', '3-2 정예성', '3-2 조예준', '3-2 차은성', '3-2 최민재', '3-2 황지성',
+  '3-3 강도영', '3-3 강민아', '3-3 강하린', '3-3 권도윤', '3-3 김규민', '3-3 김도형', '3-3 김민서', '3-3 김서율', '3-3 김승우', '3-3 김예담', '3-3 김윤재', '3-3 김은찬', '3-3 김주원', '3-3 남윤호', '3-3 문지후', '3-3 박서현', '3-3 박시우', '3-3 박윤서', '3-3 박지민', '3-3 서하준', '3-3 신민규', '3-3 양서준', '3-3 오수빈', '3-3 유다은', '3-3 이민재', '3-3 이수아', '3-3 장도윤', '3-3 정서윤', '3-3 조민재',
+  '3-4 강지후', '3-4 고서윤', '3-4 권예은', '3-4 김도윤', '3-4 김민준', '3-4 김서연', '3-4 김시우', '3-4 김아린', '3-4 김예린', '3-4 김준서', '3-4 김하율', '3-4 남지호', '3-4 노유진', '3-4 박도윤', '3-4 박세은', '3-4 박시연', '3-4 박지안', '3-4 배성민', '3-4 서민재', '3-4 손민서', '3-4 송예준', '3-4 신지우', '3-4 안서현', '3-4 양지후', '3-4 오지민', '3-4 유현서', '3-4 이가온', '3-4 이승민',
+  '3-5 강서진', '3-5 고은찬', '3-5 김도연', '3-5 김민지', '3-5 김서우', '3-5 김예준', '3-5 김주아', '3-5 김태민', '3-5 노서윤', '3-5 문서준', '3-5 박건하', '3-5 박서준', '3-5 박유나', '3-5 박지성', '3-5 배주원', '3-5 백하린', '3-5 서준혁', '3-5 성민우', '3-5 송다은', '3-5 신가은', '3-5 안지후', '3-5 양예은', '3-5 오채린', '3-5 유민재', '3-5 윤도현', '3-5 이가은', '3-5 이도현', '3-5 이수민', '3-5 이지안',
+  '3-6 강민지', '3-6 고윤서', '3-6 김도윤', '3-6 김서진', '3-6 김수현', '3-6 김예린', '3-6 김준영', '3-6 남서현', '3-6 박도현', '3-6 박서윤', '3-6 박지후', '3-6 배수민', '3-6 백민준', '3-6 서지우', '3-6 손예린', '3-6 송민준', '3-6 신도윤', '3-6 안유진', '3-6 양서윤', '3-6 오민재', '3-6 유서진', '3-6 윤지후', '3-6 이서윤', '3-6 이지후', '3-6 임서준', '3-6 정하린', '3-6 조민서', '3-6 최가은', '3-6 최우진', '3-6 최유정', '3-6 최종윤', '3-6 최지우',
+];
 
-    const teacherAccounts = [
+const placeOptions = ['교실', '복도', '운동장', '급식실', '특별실', '상담실', '보건실', '교무실', '교외', '기타'];
+const typeOptions = ['수업방해', '교우갈등', '언어폭력', '신체충돌', '무단이탈/지각', '생활규정위반', '정서/상담', '전자기기사용', '기타'];
+const severityOptions = ['낮음', '보통', '높음'];
+const statusOptions = ['진행중', '조치완료', '추적관찰'];
+
+const seedIncidents = [
   {
-    "name": "안영석",
-    "role": "교감",
-    "email": ""
+    id: 'INC-001',
+    datetime: '2026-03-23T10:20',
+    places: ['교실', '복도'],
+    types: ['수업방해', '교우갈등'],
+    students: ['3-1 강다원', '3-1 강민석', '3-2 강민재'],
+    severity: '보통',
+    status: '진행중',
+    description: '3교시 전후 학생 간 언쟁이 있었고, 수업 시작 후에도 자리 이동 및 큰 소리 대화가 이어져 학습 분위기를 저해함.',
+    followUp: '담임교사와 3학년 수업교사가 각각 면담 실시. 다음날 상담교사 연계 예정.',
+    writers: ['3학년 수업교사 A', '담임교사'],
+    updatedAt: '2026-03-23 14:10',
   },
   {
-    "name": "남승일",
-    "role": "학생부장",
-    "email": "ghaer3431@gmail.com"
+    id: 'INC-002',
+    datetime: '2026-03-22T12:35',
+    places: ['급식실'],
+    types: ['교우갈등', '언어폭력'],
+    students: ['3-3 윤지후', '3-3 조민재'],
+    severity: '높음',
+    status: '추적관찰',
+    description: '점심시간 대기 중 언어적 충돌이 있었고 주변 학생들이 개입하면서 상황이 확대됨.',
+    followUp: '학생부 교사 초기 분리 지도 후 담임교사, 상담교사 면담 실시. 일주일간 추적관찰.',
+    writers: ['학생부 교사 A', '상담교사'],
+    updatedAt: '2026-03-24 09:00',
   },
-  {
-    "name": "김지영",
-    "role": "3-1담임",
-    "email": ""
-  },
-  {
-    "name": "최원준",
-    "role": "3-2담임",
-    "email": ""
-  },
-  {
-    "name": "이보람",
-    "role": "3-3담임",
-    "email": ""
-  },
-  {
-    "name": "홍성진",
-    "role": "3-4담임",
-    "email": ""
-  },
-  {
-    "name": "서준원",
-    "role": "3-5담임",
-    "email": ""
-  },
-  {
-    "name": "문대륜",
-    "role": "3-6담임",
-    "email": ""
-  },
-  {
-    "name": "윤정원",
-    "role": "생활지도담당",
-    "email": ""
-  },
-  {
-    "name": "김현수",
-    "role": "학교폭력담당",
-    "email": ""
-  },
-  {
-    "name": "하초원",
-    "role": "안전담당",
-    "email": ""
-  },
-  {
-    "name": "신향미",
-    "role": "자치담당",
-    "email": ""
-  },
-  {
-    "name": "서예향",
-    "role": "3학년국어",
-    "email": ""
-  },
-  {
-    "name": "김현지",
-    "role": "3학년수학",
-    "email": ""
-  },
-  {
-    "name": "양수민",
-    "role": "3학년수학",
-    "email": ""
-  },
-  {
-    "name": "정아람",
-    "role": "3학년사회",
-    "email": ""
-  },
-  {
-    "name": "김영화",
-    "role": "3학년과학",
-    "email": ""
-  },
-  {
-    "name": "김영미",
-    "role": "3학년영어",
-    "email": ""
-  },
-  {
-    "name": "박찬영",
-    "role": "3학년가정",
-    "email": ""
-  },
-  {
-    "name": "이정남",
-    "role": "3학년가정",
-    "email": ""
-  },
-  {
-    "name": "김윤지",
-    "role": "3학년미술",
-    "email": ""
+];
+
+const cardStyle = 'rounded-3xl border border-slate-200 bg-white shadow-sm';
+const badgeBase = 'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium';
+
+function StatCard({ title, value, hint }) {
+  return (
+    <div className={cardStyle + ' p-5'}>
+      <div className="text-sm text-slate-500">{title}</div>
+      <div className="mt-2 text-3xl font-bold text-slate-900">{value}</div>
+      {hint ? <div className="mt-2 text-xs text-slate-500">{hint}</div> : null}
+    </div>
+  );
+}
+
+function Pill({ children, tone = 'slate' }) {
+  const tones = {
+    slate: 'bg-slate-100 text-slate-700',
+    blue: 'bg-blue-100 text-blue-700',
+    red: 'bg-red-100 text-red-700',
+    amber: 'bg-amber-100 text-amber-700',
+    green: 'bg-green-100 text-green-700',
+  };
+  return <span className={`${badgeBase} ${tones[tone]}`}>{children}</span>;
+}
+
+function CheckboxGrid({ title, options, selected, onToggle }) {
+  return (
+    <div>
+      <div className="mb-3 text-sm font-semibold text-slate-700">{title}</div>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+        {options.map((opt) => (
+          <label key={opt} className="flex cursor-pointer items-center gap-2 rounded-2xl border border-slate-200 px-3 py-3 hover:bg-slate-50">
+            <input
+              type="checkbox"
+              checked={selected.includes(opt)}
+              onChange={() => onToggle(opt)}
+              className="h-4 w-4"
+            />
+            <span className="text-sm text-slate-700">{opt}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  const SCHOOL_CODE = "6507800";
+  const [codeInput, setCodeInput] = useState("");
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const SCHOOL_CODE = "6507800"; // ← 여기 원하는 학교 코드로 바꿔
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [inputCode, setInputCode] = useState("");
+  const [view, setView] = useState('dashboard');
+  const [currentUser, setCurrentUser] = useState(teacherAccounts[0].name);
+  const [query, setQuery] = useState('');
+  const [studentQuery, setStudentQuery] = useState('');
+  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [places, setPlaces] = useState([]);
+  const [types, setTypes] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [notice, setNotice] = useState('');
+
+  const [form, setForm] = useState({
+    datetime: '',
+    severity: '보통',
+    status: '진행중',
+    description: '',
+    followUp: '',
+    note: '',
+  });
+
+  const [incidents, setIncidents] = useState(() => {
+    const saved = typeof window !== 'undefined' ? window.localStorage.getItem('grade3-incident-web-demo') : null;
+    return saved ? JSON.parse(saved) : seedIncidents;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('grade3-incident-web-demo', JSON.stringify(incidents));
+    }
+  }, [incidents]);
+
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(''), 1800);
+    return () => clearTimeout(t);
+  }, [notice]);
+
+  const role = teacherAccounts.find((t) => t.name === currentUser)?.role || '';
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-slate-100 p-6 flex items-center justify-center">
+        <div className="w-full max-w-md rounded-[28px] bg-white p-8 shadow-sm border border-slate-200">
+          <div className="text-sm text-slate-500">학교 코드 기반 접속</div>
+          <h1 className="mt-2 text-2xl font-bold text-slate-900">3학년 학생 사안 공동 기록 시스템</h1>
+          <p className="mt-3 text-sm leading-7 text-slate-600">구글 로그인 없이, 학교에서 공유한 접속 코드로만 입장하는 방식이야.</p>
+          <div className="mt-6">
+            <div className="mb-2 text-sm font-semibold text-slate-700">학교 접속 코드</div>
+            <input
+              value={codeInput}
+              onChange={(e) => setCodeInput(e.target.value)}
+              placeholder="접속 코드를 입력하세요"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none"
+            />
+          </div>
+          <button
+            onClick={() => {
+              if (codeInput === SCHOOL_CODE) {
+                setIsAuthorized(true);
+              } else {
+                alert('코드가 올바르지 않습니다.');
+              }
+            }}
+            className="mt-5 w-full rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white"
+          >
+            입장하기
+          </button>
+          <p className="mt-3 text-xs text-slate-500">현재 기본 코드는 2026으로 설정되어 있어. 원하는 코드로 바로 바꿀 수 있어.</p>
+        </div>
+      </div>
+    );
   }
-];
-    const rosterSeed = [
-  "3-1 강다원",
-  "3-1 강민석",
-  "3-1 강인혁",
-  "3-1 김가현",
-  "3-1 김경모",
-  "3-1 김고은",
-  "3-1 김동현",
-  "3-1 김민재",
-  "3-1 김수연",
-  "3-1 김지유",
-  "3-1 김태윤",
-  "3-1 박민준",
-  "3-1 박정환",
-  "3-1 신하랑",
-  "3-1 엄재빈",
-  "3-1 윤상효",
-  "3-1 이도연",
-  "3-1 이동헌",
-  "3-1 이서연",
-  "3-1 이서진",
-  "3-1 이소미",
-  "3-1 이찬희",
-  "3-1 전소희",
-  "3-1 정민영",
-  "3-1 정주영",
-  "3-1 최승원",
-  "3-1 한시윤",
-  "3-1 황연하",
-  "3-2 강하랑",
-  "3-2 권태현",
-  "3-2 김경모",
-  "3-2 김동희",
-  "3-2 김민채",
-  "3-2 김부승",
-  "3-2 김송현",
-  "3-2 김유빈",
-  "3-2 김정훈",
-  "3-2 김준성",
-  "3-2 김진서",
-  "3-2 박성욱",
-  "3-2 박시현",
-  "3-2 오진호",
-  "3-2 이소율",
-  "3-2 이승재",
-  "3-2 이윤제",
-  "3-2 이지후",
-  "3-2 이채민",
-  "3-2 이효준",
-  "3-2 전성현",
-  "3-2 정연주",
-  "3-2 조세훈",
-  "3-2 조예서",
-  "3-2 지예림",
-  "3-2 최수현",
-  "3-2 최승우",
-  "3-2 하예준",
-  "3-2 홍성찬",
-  "3-3 고주혁",
-  "3-3 권지언",
-  "3-3 김단아",
-  "3-3 김도연",
-  "3-3 김도한",
-  "3-3 김범준",
-  "3-3 김송연",
-  "3-3 김은우",
-  "3-3 김태연",
-  "3-3 김하민",
-  "3-3 문준우",
-  "3-3 박정원",
-  "3-3 박하율",
-  "3-3 배연호",
-  "3-3 서호탁",
-  "3-3 안해수",
-  "3-3 이봄",
-  "3-3 이예준",
-  "3-3 이종빈",
-  "3-3 이하랑",
-  "3-3 임은준",
-  "3-3 전원태",
-  "3-3 조연서",
-  "3-3 최양인",
-  "3-3 최용순",
-  "3-3 최율채",
-  "3-3 최재성",
-  "3-3 홍도윤",
-  "3-4 곽찬희",
-  "3-4 김강이",
-  "3-4 김건우",
-  "3-4 김경모",
-  "3-4 김남연",
-  "3-4 김시윤",
-  "3-4 김유현",
-  "3-4 김태영",
-  "3-4 김필기",
-  "3-4 김형준",
-  "3-4 백태겸",
-  "3-4 성현우",
-  "3-4 심현서",
-  "3-4 양서진",
-  "3-4 오은영",
-  "3-4 오채민",
-  "3-4 유정우",
-  "3-4 이예님",
-  "3-4 이정윤",
-  "3-4 이준겸",
-  "3-4 장수아",
-  "3-4 장이실",
-  "3-4 정유빈",
-  "3-4 조한결",
-  "3-4 조훈희",
-  "3-4 천지유",
-  "3-4 최상무",
-  "3-4 최우영",
-  "3-4 LI VERONIKA",
-  "3-5 권현찬",
-  "3-5 김영호",
-  "3-5 김정경",
-  "3-5 김주빈",
-  "3-5 박성원",
-  "3-5 박수민",
-  "3-5 박시우",
-  "3-5 박찬균",
-  "3-5 방인혁",
-  "3-5 방준서",
-  "3-5 서예원",
-  "3-5 심가람",
-  "3-5 심혜성",
-  "3-5 오인태",
-  "3-5 이나윤",
-  "3-5 이재은",
-  "3-5 이준서",
-  "3-5 임지용",
-  "3-5 장동국",
-  "3-5 장현아",
-  "3-5 전소연",
-  "3-5 정지원",
-  "3-5 조명은",
-  "3-5 조윤성",
-  "3-5 조홍성",
-  "3-5 최서은",
-  "3-5 최우리",
-  "3-5 최준우",
-  "3-6 권대연",
-  "3-6 김동리",
-  "3-6 김동하",
-  "3-6 김무건",
-  "3-6 김서윤",
-  "3-6 김윤아",
-  "3-6 김지환",
-  "3-6 김하온",
-  "3-6 김현우",
-  "3-6 박시우",
-  "3-6 박정욱",
-  "3-6 박주연",
-  "3-6 박지운",
-  "3-6 변건수",
-  "3-6 송영서",
-  "3-6 엄윤희",
-  "3-6 우지형",
-  "3-6 윤현아",
-  "3-6 이소영",
-  "3-6 이주하",
-  "3-6 임채원",
-  "3-6 정구찬",
-  "3-6 정지형",
-  "3-6 최가은",
-  "3-6 최우진",
-  "3-6 최유정",
-  "3-6 최종윤",
-  "3-6 최지우"
-];
-    const seedIncidents = [
-  {
-    "datetime": "2026-03-23T10:20",
-    "places": [
-      "교실",
-      "복도"
-    ],
-    "types": [
-      "수업방해",
-      "교우갈등"
-    ],
-    "students": [
-      "3-1 강다원",
-      "3-1 강민석",
-      "3-1 강인혁"
-    ],
-    "severity": "보통",
-    "status": "진행중",
-    "description": "3교시 전후 학생 간 언쟁이 있었고, 수업 시작 후에도 자리 이동 및 큰 소리 대화가 이어져 학습 분위기를 저해함.",
-    "followUp": "담임교사와 3학년 수업교사가 각각 면담 실시. 다음날 상담교사 연계 예정."
-  },
-  {
-    "datetime": "2026-03-22T12:35",
-    "places": [
-      "급식실"
-    ],
-    "types": [
-      "교우갈등",
-      "언어폭력"
-    ],
-    "students": [
-      "3-3 김도연",
-      "3-3 김도한"
-    ],
-    "severity": "높음",
-    "status": "추적관찰",
-    "description": "점심시간 대기 중 언어적 충돌이 있었고 주변 학생들이 개입하면서 상황이 확대됨.",
-    "followUp": "생활지도담당 초기 분리 지도 후 담임교사, 상담교사 면담 실시. 일주일간 추적관찰."
-  }
-];
 
-    const placeOptions = ['교실', '복도', '운동장', '급식실', '특별실', '상담실', '교무실', '교외', '화장실', '기타'];
-    const typeOptions = ['수업방해', '교우갈등', '언어폭력', '신체충돌', '무단이탈/지각', '생활규정위반', '정서/상담', '전자기기사용', '기타'];
-    const severityOptions = ['낮음', '보통', '높음'];
-    const statusOptions = ['진행중', '조치완료', '추적관찰'];
-    const cardStyle = 'card';
+  const filteredRoster = useMemo(() => {
+    if (!studentQuery.trim()) return rosterSeed;
+    return rosterSeed.filter((student) => student.toLowerCase().includes(studentQuery.toLowerCase()));
+  }, [studentQuery]);
 
-    const app = initializeApp(FIREBASE_CONFIG);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
+  const filteredIncidents = useMemo(() => {
+    if (!query.trim()) return incidents;
+    const q = query.toLowerCase();
+    return incidents.filter((item) =>
+      [
+        item.id,
+        item.datetime,
+        item.severity,
+        item.status,
+        item.description,
+        item.followUp,
+        item.note || '',
+        ...item.places,
+        ...item.types,
+        ...item.students,
+        ...item.writers,
+      ]
+        .join(' ')
+        .toLowerCase()
+        .includes(q)
+    );
+  }, [incidents, query]);
 
-    function roleForUser(user) {
-      if (!user) return null;
-      const email = (user.email || '').toLowerCase();
-      const displayName = user.displayName || '';
-      return teacherAccounts.find((t) =>
-        (t.email && t.email.toLowerCase() === email) || (!t.email && t.name === displayName)
-      ) || null;
-    }
-
-    function StatCard({ title, value, hint }) {
-      return React.createElement('div', { className: 'card p-5' },
-        React.createElement('div', { className: 'text-sm text-slate-500' }, title),
-        React.createElement('div', { className: 'mt-2 text-3xl font-bold text-slate-900' }, value),
-        hint ? React.createElement('div', { className: 'mt-2 text-xs text-slate-500' }, hint) : null
-      );
-    }
-
-    function Pill({ children, tone = 'slate' }) {
-      return React.createElement('span', { className: `pill pill-${tone}` }, children);
-    }
-
-    function CheckboxGrid({ title, options, selected, onToggle }) {
-      return React.createElement('div', null,
-        React.createElement('div', { className: 'mb-3 text-sm font-semibold text-slate-700' }, title),
-        React.createElement('div', { className: 'grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4' },
-          ...options.map((opt) =>
-            React.createElement('label', { key: opt, className: 'flex cursor-pointer items-center gap-2 rounded-2xl border border-slate-200 px-3 py-3 hover:bg-slate-50' },
-              React.createElement('input', {
-                type: 'checkbox',
-                checked: selected.includes(opt),
-                onChange: () => onToggle(opt),
-                className: 'h-4 w-4'
-              }),
-              React.createElement('span', { className: 'text-sm text-slate-700' }, opt)
-            )
-          )
-        )
-      );
-    }
-
-    function App() {
-      const [view, setView] = useState('dashboard');
-      const [authUser, setAuthUser] = useState(null);
-      const [allowedTeacher, setAllowedTeacher] = useState(null);
-      const [incidents, setIncidents] = useState([]);
-      const [loading, setLoading] = useState(true);
-      const [queryText, setQueryText] = useState('');
-      const [studentQuery, setStudentQuery] = useState('');
-      const [selectedStudents, setSelectedStudents] = useState([]);
-      const [places, setPlaces] = useState([]);
-      const [types, setTypes] = useState([]);
-      const [editingId, setEditingId] = useState(null);
-      const [notice, setNotice] = useState('');
-
-      const [form, setForm] = useState({
-        datetime: '',
-        severity: '보통',
-        status: '진행중',
-        description: '',
-        followUp: '',
-        note: '',
+  const countsByStudent = useMemo(() => {
+    const map = {};
+    incidents.forEach((incident) => {
+      incident.students.forEach((student) => {
+        map[student] = (map[student] || 0) + 1;
       });
+    });
+    return Object.entries(map)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [incidents]);
 
-      useEffect(() => {
-        return onAuthStateChanged(auth, async (user) => {
-          setAuthUser(user);
-          const matched = roleForUser(user);
-          setAllowedTeacher(matched || null);
-          setLoading(false);
-        });
-      }, []);
+  const countsByType = useMemo(() => {
+    const map = {};
+    typeOptions.forEach((t) => (map[t] = 0));
+    incidents.forEach((incident) => incident.types.forEach((t) => (map[t] = (map[t] || 0) + 1)));
+    return Object.entries(map).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+  }, [incidents]);
 
-      useEffect(() => {
-        if (!allowedTeacher) return;
-        const q = query(collection(db, 'incidents'), orderBy('datetime', 'desc'));
-        const unsub = onSnapshot(q, (snapshot) => {
-          const rows = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-          setIncidents(rows);
-        });
-        return () => unsub();
-      }, [allowedTeacher]);
+  const countsByMonth = useMemo(() => {
+    const map = {};
+    incidents.forEach((incident) => {
+      const key = incident.datetime.slice(0, 7);
+      map[key] = (map[key] || 0) + 1;
+    });
+    return Object.entries(map)
+      .map(([month, count]) => ({ month, count }))
+      .sort((a, b) => a.month.localeCompare(b.month));
+  }, [incidents]);
 
-      useEffect(() => {
-        if (!notice) return;
-        const t = setTimeout(() => setNotice(''), 1800);
-        return () => clearTimeout(t);
-      }, [notice]);
+  const totalCount = incidents.length;
+  const inProgressCount = incidents.filter((i) => i.status === '진행중').length;
+  const highCount = incidents.filter((i) => i.severity === '높음').length;
+  const repeatedStudents = countsByStudent.filter((s) => s.count >= 2).length;
 
-      const filteredRoster = useMemo(() => {
-        if (!studentQuery.trim()) return rosterSeed;
-        return rosterSeed.filter((student) => student.toLowerCase().includes(studentQuery.toLowerCase()));
-      }, [studentQuery]);
+  const toggleListValue = (value, list, setter) => {
+    setter(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+  };
 
-      const filteredIncidents = useMemo(() => {
-        if (!queryText.trim()) return incidents;
-        const q = queryText.toLowerCase();
-        return incidents.filter((item) =>
-          [
-            item.id, item.datetime, item.severity, item.status, item.description, item.followUp, item.note || '',
-            ...(item.places || []), ...(item.types || []), ...(item.students || []), ...(item.writers || []),
-          ].join(' ').toLowerCase().includes(q)
-        );
-      }, [incidents, queryText]);
+  const resetForm = () => {
+    setForm({ datetime: '', severity: '보통', status: '진행중', description: '', followUp: '', note: '' });
+    setSelectedStudents([]);
+    setPlaces([]);
+    setTypes([]);
+    setStudentQuery('');
+    setEditingId(null);
+  };
 
-      const countsByStudent = useMemo(() => {
-        const map = {};
-        incidents.forEach((incident) => {
-          (incident.students || []).forEach((student) => {
-            map[student] = (map[student] || 0) + 1;
-          });
-        });
-        return Object.entries(map).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
-      }, [incidents]);
+  const startEdit = (incident) => {
+    setEditingId(incident.id);
+    setForm({
+      datetime: incident.datetime,
+      severity: incident.severity,
+      status: incident.status,
+      description: incident.description,
+      followUp: incident.followUp,
+      note: incident.note || '',
+    });
+    setSelectedStudents(incident.students);
+    setPlaces(incident.places);
+    setTypes(incident.types);
+    setView('create');
+    setNotice('사안을 수정 모드로 불러왔어요.');
+  };
 
-      const countsByType = useMemo(() => {
-        const map = {};
-        typeOptions.forEach((t) => (map[t] = 0));
-        incidents.forEach((incident) => (incident.types || []).forEach((t) => (map[t] = (map[t] || 0) + 1)));
-        return Object.entries(map).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
-      }, [incidents]);
-
-      const totalCount = incidents.length;
-      const inProgressCount = incidents.filter((i) => i.status === '진행중').length;
-      const highCount = incidents.filter((i) => i.severity === '높음').length;
-      const repeatedStudents = countsByStudent.filter((s) => s.count >= 2).length;
-
-      const toggleListValue = (value, list, setter) => {
-        setter(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
-      };
-
-      const resetForm = () => {
-        setForm({ datetime: '', severity: '보통', status: '진행중', description: '', followUp: '', note: '' });
-        setSelectedStudents([]);
-        setPlaces([]);
-        setTypes([]);
-        setStudentQuery('');
-        setEditingId(null);
-      };
-
-      const startEdit = (incident) => {
-        setEditingId(incident.id);
-        setForm({
-          datetime: incident.datetime || '',
-          severity: incident.severity || '보통',
-          status: incident.status || '진행중',
-          description: incident.description || '',
-          followUp: incident.followUp || '',
-          note: incident.note || '',
-        });
-        setSelectedStudents(incident.students || []);
-        setPlaces(incident.places || []);
-        setTypes(incident.types || []);
-        setView('create');
-        setNotice('사안을 수정 모드로 불러왔어요.');
-      };
-
-      async function signIn() {
-        try {
-          await signInWithPopup(auth, provider);
-        } catch (e) {
-          setNotice('로그인에 실패했어.');
-        }
-      }
-
-      async function logOut() {
-        await signOut(auth);
-        setAllowedTeacher(null);
-      }
-
-      async function saveIncident() {
-        if (!form.datetime || !places.length || !types.length || !selectedStudents.length || !form.description.trim() || !form.followUp.trim()) {
-          setNotice('필수 항목을 먼저 입력해줘.');
-          return;
-        }
-        const payload = {
-          datetime: form.datetime,
-          places,
-          types,
-          students: selectedStudents,
-          severity: form.severity,
-          status: form.status,
-          description: form.description,
-          followUp: form.followUp,
-          note: form.note,
-          writers: editingId
-            ? Array.from(new Set([...(incidents.find((x) => x.id === editingId)?.writers || []), allowedTeacher.name]))
-            : [allowedTeacher.name],
-          updatedAtText: new Date().toLocaleString('sv-SE').slice(0, 16).replace('T', ' '),
-          updatedAt: serverTimestamp(),
-        };
-
-        if (editingId) {
-          await updateDoc(doc(db, 'incidents', editingId), payload);
-          setNotice('사안을 수정했어.');
-        } else {
-          await addDoc(collection(db, 'incidents'), {
-            ...payload,
-            createdAt: serverTimestamp(),
-          });
-          setNotice('사안을 등록했어.');
-        }
-        resetForm();
-        setView('incidents');
-      }
-
-      async function deleteIncident(incidentId) {
-        const ok = window.confirm('이 사안을 정말 삭제할까? 삭제 후 복구가 어려울 수 있어.');
-        if (!ok) return;
-        await deleteDoc(doc(db, 'incidents', incidentId));
-        if (editingId === incidentId) resetForm();
-        setNotice('사안을 삭제했어.');
-      }
-
-      async function seedDemoData() {
-        const snap = await getDocs(query(collection(db, 'incidents'), limit(1)));
-        if (!snap.empty) {
-          setNotice('이미 데이터가 있어서 예시 사안을 추가하지 않았어.');
-          return;
-        }
-        for (const row of seedIncidents) {
-          await addDoc(collection(db, 'incidents'), {
-            ...row,
-            writers: [allowedTeacher.name],
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            updatedAtText: new Date().toLocaleString('sv-SE').slice(0, 16).replace('T', ' '),
-          });
-        }
-        setNotice('예시 사안을 추가했어.');
-      }
-
-      if (loading) {
-        return React.createElement('div', { className: 'min-h-screen flex items-center justify-center text-slate-600' }, '불러오는 중...');
-      }
-
-      if (!authUser) {
-        return React.createElement('div', { className: 'min-h-screen flex items-center justify-center p-6' },
-          React.createElement('div', { className: 'card max-w-xl p-8 text-center' },
-            React.createElement('div', { className: 'text-2xl font-bold text-slate-900' }, '3학년 사안 공동 기록 시스템'),
-            React.createElement('p', { className: 'mt-3 text-sm leading-7 text-slate-600' }, 'Google 로그인으로 접속하고, 허용된 교사만 사용할 수 있는 공유형 Firebase 버전이야.'),
-            React.createElement('button', { onClick: signIn, className: 'mt-6 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white' }, 'Google로 로그인')
-          )
-        );
-      }
-
-      if (!allowedTeacher) {
-        return React.createElement('div', { className: 'min-h-screen flex items-center justify-center p-6' },
-          React.createElement('div', { className: 'card max-w-xl p-8 text-center' },
-            React.createElement('div', { className: 'text-xl font-bold text-slate-900' }, '허용된 교사 계정이 아니야'),
-            React.createElement('p', { className: 'mt-3 text-sm leading-7 text-slate-600' },
-              `현재 로그인: ${authUser.displayName || ''} / ${authUser.email || ''}`
-            ),
-            React.createElement('p', { className: 'mt-2 text-sm leading-7 text-slate-600' },
-              'teacherAccounts 배열의 email을 실제 교사 이메일로 채우면 더 안전하게 제한할 수 있어.'
-            ),
-            React.createElement('button', { onClick: logOut, className: 'mt-6 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white' }, '로그아웃')
-          )
-        );
-      }
-
-      return React.createElement('div', { className: 'min-h-screen bg-slate-100 text-slate-900' },
-        React.createElement('div', { className: 'mx-auto max-w-7xl p-4 md:p-8' },
-          React.createElement('div', { className: 'mb-6 rounded-[28px] bg-gradient-to-r from-slate-900 to-slate-700 p-6 text-white shadow-lg' },
-            React.createElement('div', { className: 'flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between' },
-              React.createElement('div', null,
-                React.createElement('div', { className: 'text-sm text-slate-200' }, '공유형 Firebase 버전 · 삭제 확인창 포함'),
-                React.createElement('h1', { className: 'mt-2 text-2xl font-bold md:text-3xl' }, '3학년 사안 공동 기록 시스템'),
-                React.createElement('p', { className: 'mt-2 text-sm text-slate-200' }, `${allowedTeacher.name} · ${allowedTeacher.role}`)
-              ),
-              React.createElement('div', { className: 'flex flex-wrap items-center gap-3' },
-                React.createElement('button', { onClick: seedDemoData, className: 'rounded-2xl bg-white/10 px-4 py-3 text-sm font-medium text-white' }, '예시 사안 추가'),
-                React.createElement('button', { onClick: logOut, className: 'rounded-2xl bg-white px-4 py-3 text-sm font-medium text-slate-900' }, '로그아웃')
-              )
-            )
-          ),
-
-          notice ? React.createElement('div', { className: 'mb-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700' }, notice) : null,
-
-          React.createElement('div', { className: 'mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4' },
-            React.createElement(StatCard, { title: '전체 사안 수', value: totalCount, hint: '실시간 공유 데이터' }),
-            React.createElement(StatCard, { title: '진행중 사안', value: inProgressCount, hint: '즉시 확인이 필요한 건' }),
-            React.createElement(StatCard, { title: '높음 심각도', value: highCount, hint: '교감/학생부 우선 확인' }),
-            React.createElement(StatCard, { title: '반복 등장 학생', value: repeatedStudents, hint: '2회 이상 연루 학생' })
-          ),
-
-          React.createElement('div', { className: 'mb-6 flex flex-wrap gap-2' },
-            ...[['dashboard','대시보드'], ['incidents','사안 목록'], ['create', editingId ? '사안 수정' : '사안 등록']].map(([key,label]) =>
-              React.createElement('button', {
-                key, onClick: () => setView(key),
-                className: `rounded-2xl px-4 py-3 text-sm font-medium ${view === key ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 shadow-sm'}`
-              }, label)
-            )
-          ),
-
-          view === 'dashboard' ? React.createElement('div', { className: 'grid gap-6 lg:grid-cols-2' },
-            React.createElement('div', { className: cardStyle + ' p-5' },
-              React.createElement('div', { className: 'mb-4 text-lg font-semibold' }, '반복 등장 학생'),
-              React.createElement('div', { className: 'space-y-3' },
-                ...countsByStudent.slice(0, 8).map((student) =>
-                  React.createElement('div', { key: student.name, className: 'flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3' },
-                    React.createElement('div', { className: 'text-sm font-medium text-slate-700' }, student.name),
-                    React.createElement(Pill, { tone: student.count >= 3 ? 'red' : student.count >= 2 ? 'amber' : 'blue' }, `${student.count}건`)
-                  )
-                )
-              )
-            ),
-            React.createElement('div', { className: cardStyle + ' p-5' },
-              React.createElement('div', { className: 'mb-4 text-lg font-semibold' }, '사안 유형별 통계'),
-              React.createElement('div', { className: 'space-y-3' },
-                ...countsByType.map((type) =>
-                  React.createElement('div', { key: type.name },
-                    React.createElement('div', { className: 'mb-1 flex items-center justify-between text-sm' },
-                      React.createElement('span', null, type.name),
-                      React.createElement('span', { className: 'font-semibold' }, type.count)
-                    ),
-                    React.createElement('div', { className: 'h-3 rounded-full bg-slate-100' },
-                      React.createElement('div', { className: 'h-3 rounded-full bg-slate-700', style: { width: `${Math.max(type.count * 20, type.count ? 12 : 0)}%` } })
-                    )
-                  )
-                )
-              )
-            )
-          ) : null,
-
-          view === 'incidents' ? React.createElement('div', { className: 'space-y-4' },
-            React.createElement('div', { className: cardStyle + ' p-4' },
-              React.createElement('div', { className: 'flex flex-col gap-3 md:flex-row md:items-center md:justify-between' },
-                React.createElement('input', {
-                  value: queryText,
-                  onChange: (e) => setQueryText(e.target.value),
-                  placeholder: '학생명, 장소, 유형, 상태, 내용으로 검색',
-                  className: 'w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none md:max-w-md'
-                }),
-                React.createElement('button', { onClick: () => setView('create'), className: 'rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white' }, '새 사안 등록')
-              )
-            ),
-            ...filteredIncidents.map((item) => {
-              const repeatedInThisIncident = (item.students || []).filter((student) => (countsByStudent.find((s) => s.name === student)?.count || 0) >= 2);
-              return React.createElement('div', { key: item.id, className: cardStyle + ' p-5' },
-                React.createElement('div', { className: 'flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between' },
-                  React.createElement('div', { className: 'flex-1' },
-                    React.createElement('div', { className: 'flex flex-wrap items-center gap-2' },
-                      React.createElement(Pill, null, item.id),
-                      React.createElement(Pill, { tone: item.severity === '높음' ? 'red' : item.severity === '보통' ? 'amber' : 'green' }, item.severity),
-                      React.createElement(Pill, { tone: 'blue' }, item.status),
-                      React.createElement('span', { className: 'text-sm text-slate-500' }, (item.datetime || '').replace('T',' '))
-                    ),
-                    React.createElement('div', { className: 'mt-3 flex flex-wrap gap-2' },
-                      ...(item.places || []).map((place) => React.createElement(Pill, { key: place, tone: 'slate' }, `📍 ${place}`)),
-                      ...(item.types || []).map((type) => React.createElement(Pill, { key: type, tone: 'blue' }, `🏷 ${type}`))
-                    ),
-                    React.createElement('div', { className: 'mt-4' },
-                      React.createElement('div', { className: 'mb-2 text-sm font-semibold text-slate-700' }, '관련 학생'),
-                      React.createElement('div', { className: 'flex flex-wrap gap-2' },
-                        ...(item.students || []).map((student) => {
-                          const count = countsByStudent.find((s) => s.name === student)?.count || 0;
-                          return React.createElement(Pill, { key: student, tone: count >= 3 ? 'red' : count >= 2 ? 'amber' : 'slate' }, student);
-                        })
-                      ),
-                      repeatedInThisIncident.length > 0 ? React.createElement('div', { className: 'mt-2 text-xs text-red-600' }, `반복 등장 학생: ${repeatedInThisIncident.join(', ')}`) : null
-                    )
-                  ),
-                  React.createElement('div', { className: 'flex gap-2' },
-                    React.createElement('button', { onClick: () => startEdit(item), className: 'rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white' }, '수정'),
-                    React.createElement('button', { onClick: () => deleteIncident(item.id), className: 'rounded-2xl bg-red-600 px-4 py-3 text-sm font-medium text-white' }, '삭제')
-                  )
-                ),
-                React.createElement('div', { className: 'mt-4 grid gap-4 lg:grid-cols-2' },
-                  React.createElement('div', { className: 'rounded-2xl bg-slate-50 p-4' },
-                    React.createElement('div', { className: 'mb-2 text-sm font-semibold text-slate-700' }, '구체적 상황'),
-                    React.createElement('div', { className: 'whitespace-pre-wrap text-sm leading-7 text-slate-600' }, item.description || '')
-                  ),
-                  React.createElement('div', { className: 'rounded-2xl bg-slate-50 p-4' },
-                    React.createElement('div', { className: 'mb-2 text-sm font-semibold text-slate-700' }, '후속조치'),
-                    React.createElement('div', { className: 'whitespace-pre-wrap text-sm leading-7 text-slate-600' }, item.followUp || '')
-                  )
-                ),
-                React.createElement('div', { className: 'mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500' },
-                  React.createElement('span', null, `작성/추가 교사: ${(item.writers || []).join(', ')}`),
-                  React.createElement('span', null, `최근 수정일: ${item.updatedAtText || ''}`)
-                )
-              );
-            })
-          ) : null,
-
-          view === 'create' ? React.createElement('div', { className: cardStyle + ' p-5 md:p-6' },
-            React.createElement('div', { className: 'mb-5 text-xl font-bold' }, editingId ? '사안 수정' : '사안 등록'),
-            React.createElement('div', { className: 'grid gap-4 md:grid-cols-3' },
-              React.createElement('div', null,
-                React.createElement('div', { className: 'mb-2 text-sm font-semibold text-slate-700' }, '사안발생일시'),
-                React.createElement('input', { type: 'datetime-local', value: form.datetime, onChange: (e) => setForm({ ...form, datetime: e.target.value }), className: 'w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none' })
-              ),
-              React.createElement('div', null,
-                React.createElement('div', { className: 'mb-2 text-sm font-semibold text-slate-700' }, '심각도'),
-                React.createElement('select', { value: form.severity, onChange: (e) => setForm({ ...form, severity: e.target.value }), className: 'w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none' },
-                  ...severityOptions.map((option) => React.createElement('option', { key: option }, option))
-                )
-              ),
-              React.createElement('div', null,
-                React.createElement('div', { className: 'mb-2 text-sm font-semibold text-slate-700' }, '사안 상태'),
-                React.createElement('select', { value: form.status, onChange: (e) => setForm({ ...form, status: e.target.value }), className: 'w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none' },
-                  ...statusOptions.map((option) => React.createElement('option', { key: option }, option))
-                )
-              )
-            ),
-            React.createElement('div', { className: 'mt-6 grid gap-6 xl:grid-cols-2' },
-              React.createElement(CheckboxGrid, { title: '사안발생장소 · 복수 선택', options: placeOptions, selected: places, onToggle: (v) => toggleListValue(v, places, setPlaces) }),
-              React.createElement(CheckboxGrid, { title: '사안유형 · 복수 선택', options: typeOptions, selected: types, onToggle: (v) => toggleListValue(v, types, setTypes) })
-            ),
-            React.createElement('div', { className: 'mt-6' },
-              React.createElement('div', { className: 'mb-2 flex items-center justify-between' },
-                React.createElement('div', { className: 'text-sm font-semibold text-slate-700' }, '관련 학생 · 검색 후 여러 명 선택'),
-                React.createElement(Pill, { tone: 'blue' }, `${selectedStudents.length}명 선택`)
-              ),
-              React.createElement('input', { value: studentQuery, onChange: (e) => setStudentQuery(e.target.value), placeholder: '학생명 검색', className: 'mb-3 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none md:max-w-md' }),
-              React.createElement('div', { className: 'max-h-64 overflow-auto rounded-2xl border border-slate-200 bg-slate-50 p-3' },
-                React.createElement('div', { className: 'grid gap-2 md:grid-cols-2 xl:grid-cols-3' },
-                  ...filteredRoster.map((student) =>
-                    React.createElement('label', { key: student, className: 'flex cursor-pointer items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-3 hover:bg-slate-50' },
-                      React.createElement('input', { type: 'checkbox', checked: selectedStudents.includes(student), onChange: () => toggleListValue(student, selectedStudents, setSelectedStudents) }),
-                      React.createElement('span', { className: 'text-sm text-slate-700' }, student)
-                    )
-                  )
-                )
-              )
-            ),
-            React.createElement('div', { className: 'mt-6 grid gap-6 lg:grid-cols-2' },
-              React.createElement('div', null,
-                React.createElement('div', { className: 'mb-2 text-sm font-semibold text-slate-700' }, '구체적 상황 · 공동 작성'),
-                React.createElement('textarea', { value: form.description, onChange: (e) => setForm({ ...form, description: e.target.value }), className: 'min-h-[220px] w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none' })
-              ),
-              React.createElement('div', null,
-                React.createElement('div', { className: 'mb-2 text-sm font-semibold text-slate-700' }, '후속조치 · 공동 작성'),
-                React.createElement('textarea', { value: form.followUp, onChange: (e) => setForm({ ...form, followUp: e.target.value }), className: 'min-h-[220px] w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none' })
-              )
-            ),
-            React.createElement('div', { className: 'mt-6 flex justify-end gap-2' },
-              React.createElement('button', { onClick: resetForm, className: 'rounded-2xl bg-slate-200 px-5 py-3 text-sm font-medium text-slate-700' }, '초기화'),
-              React.createElement('button', { onClick: saveIncident, className: 'rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white' }, editingId ? '수정 저장' : '사안 등록')
-            )
-          ) : null
-        )
-      );
+  const saveIncident = () => {
+    if (!form.datetime || !places.length || !types.length || !selectedStudents.length || !form.description.trim() || !form.followUp.trim()) {
+      setNotice('필수 항목을 먼저 입력해줘.');
+      return;
     }
 
-    createRoot(document.getElementById('root')).render(React.createElement(App));
-  </script>
-</body>
-</html>
+    const payload = {
+      datetime: form.datetime,
+      places,
+      types,
+      students: selectedStudents,
+      severity: form.severity,
+      status: form.status,
+      description: form.description,
+      followUp: form.followUp,
+      note: form.note,
+      updatedAt: new Date().toLocaleString('sv-SE').slice(0, 16).replace('T', ' '),
+    };
+
+    if (editingId) {
+      setIncidents((prev) =>
+        prev.map((item) =>
+          item.id === editingId
+            ? {
+                ...item,
+                ...payload,
+                writers: Array.from(new Set([...item.writers, currentUser])),
+              }
+            : item
+        )
+      );
+      setNotice('사안을 수정했어.');
+    } else {
+      const nextId = `INC-${String(incidents.length + 1).padStart(3, '0')}`;
+      setIncidents([
+        {
+          id: nextId,
+          ...payload,
+          writers: [currentUser],
+        },
+        ...incidents,
+      ]);
+      setNotice('사안을 등록했어.');
+    }
+
+    resetForm();
+    setView('incidents');
+  };
+
+  const clearDemoData = () => {
+        setIncidents(seedIncidents);
+        resetForm();
+        setNotice('데모 데이터를 초기 상태로 되돌렸어.');
+      };
+
+      const deleteIncident = (incidentId) => {
+        setIncidents((prev) => prev.filter((item) => item.id !== incidentId));
+        if (editingId === incidentId) {
+          resetForm();
+        }
+        setNotice('사안을 삭제했어.');
+      };
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <div className="rounded-3xl bg-white p-8 shadow-md w-full max-w-md">
+          <h2 className="text-xl font-bold mb-4">학교 접속 코드 입력</h2>
+          <input
+            value={inputCode}
+            onChange={(e) => setInputCode(e.target.value)}
+            placeholder="코드를 입력하세요"
+            className="w-full border rounded-xl px-4 py-3 mb-4"
+          />
+          <button
+            onClick={() => {
+              if (inputCode === SCHOOL_CODE) {
+                setIsAuthorized(true);
+              } else {
+                alert("코드가 틀렸습니다");
+              }
+            }}
+            className="w-full bg-slate-900 text-white rounded-xl py-3"
+          >
+            입장
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-100 text-slate-900">
+      <div className="mx-auto max-w-7xl p-4 md:p-8">
+        <div className="mb-6 rounded-[28px] bg-gradient-to-r from-slate-900 to-slate-700 p-6 text-white shadow-lg">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="text-sm text-slate-200">학교 코드 기반 접속 웹 프로토타입</div>
+              <h1 className="mt-2 text-2xl font-bold md:text-3xl">3학년 학생 사안 공동 기록 시스템</h1>
+              <p className="mt-2 max-w-3xl text-sm text-slate-200">
+                학교 코드로 입장한 뒤, 담당 교사를 선택해서 공동으로 기록하는 구조
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <select
+                value={currentUser}
+                onChange={(e) => setCurrentUser(e.target.value)}
+                className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white outline-none"
+              >
+                {teacherAccounts.map((teacher) => (
+                  <option key={teacher.name} value={teacher.name} className="text-slate-900">
+                    {teacher.name} · {teacher.role}
+                  </option>
+                ))}
+              </select>
+              <span className="rounded-full bg-white/15 px-4 py-2 text-sm">현재 권한: {role}</span>
+            </div>
+          </div>
+        </div>
+
+        {notice ? (
+          <div className="mb-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">{notice}</div>
+        ) : null}
+
+        <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <StatCard title="전체 사안 수" value={totalCount} hint="사안 1건 = 기록 1개" />
+          <StatCard title="진행중 사안" value={inProgressCount} hint="즉시 확인이 필요한 건" />
+          <StatCard title="높음 심각도" value={highCount} hint="교감/학생부 우선 확인" />
+          <StatCard title="반복 등장 학생" value={repeatedStudents} hint="2회 이상 연루 학생" />
+        </div>
+
+        <div className="mb-6 flex flex-wrap gap-2">
+          {[
+            ['dashboard', '대시보드'],
+            ['incidents', '사안 목록'],
+            ['create', editingId ? '사안 수정' : '사안 등록'],
+            ['permissions', '권한/운영'],
+          ].map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setView(key)}
+              className={`rounded-2xl px-4 py-3 text-sm font-medium ${view === key ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 shadow-sm'}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {view === 'dashboard' && (
+          <div className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className={cardStyle + ' p-5'}>
+                <div className="mb-4 text-lg font-semibold">반복 등장 학생</div>
+                <div className="space-y-3">
+                  {countsByStudent.slice(0, 8).map((student) => (
+                    <div key={student.name} className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                      <div className="text-sm font-medium text-slate-700">{student.name}</div>
+                      <Pill tone={student.count >= 3 ? 'red' : student.count >= 2 ? 'amber' : 'blue'}>{student.count}건</Pill>
+                    </div>
+                  ))}
+                  {!countsByStudent.length && <div className="text-sm text-slate-500">아직 기록이 없어.</div>}
+                </div>
+              </div>
+
+              <div className={cardStyle + ' p-5'}>
+                <div className="mb-4 text-lg font-semibold">사안 유형별 통계</div>
+                <div className="space-y-3">
+                  {countsByType.map((type) => (
+                    <div key={type.name}>
+                      <div className="mb-1 flex items-center justify-between text-sm">
+                        <span>{type.name}</span>
+                        <span className="font-semibold">{type.count}</span>
+                      </div>
+                      <div className="h-3 rounded-full bg-slate-100">
+                        <div
+                          className="h-3 rounded-full bg-slate-700"
+                          style={{ width: `${Math.max(type.count * 20, type.count ? 12 : 0)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className={cardStyle + ' p-5'}>
+                <div className="mb-4 text-lg font-semibold">월별 사안 수</div>
+                <div className="space-y-3">
+                  {countsByMonth.map((item) => (
+                    <div key={item.month} className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-sm">
+                      <span>{item.month}</span>
+                      <Pill tone="blue">{item.count}건</Pill>
+                    </div>
+                  ))}
+                  {!countsByMonth.length && <div className="text-sm text-slate-500">월별 데이터가 아직 없어.</div>}
+                </div>
+              </div>
+
+              <div className={cardStyle + ' p-5'}>
+                <div className="mb-4 text-lg font-semibold">최근 사안</div>
+                <div className="space-y-3">
+                  {incidents.slice(0, 5).map((item) => (
+                    <div key={item.id} className="rounded-2xl border border-slate-200 p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Pill tone="slate">{item.id}</Pill>
+                        <Pill tone={item.severity === '높음' ? 'red' : item.severity === '보통' ? 'amber' : 'green'}>{item.severity}</Pill>
+                        <span className="text-xs text-slate-500">{item.datetime.replace('T', ' ')}</span>
+                      </div>
+                      <div className="mt-2 text-sm text-slate-700">{item.students.join(', ')}</div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {item.types.map((type) => <Pill key={type} tone="blue">{type}</Pill>)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {view === 'incidents' && (
+          <div className="space-y-4">
+            <div className={cardStyle + ' p-4'}>
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="학생명, 장소, 유형, 상태, 내용으로 검색"
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none md:max-w-md"
+                />
+                <div className="flex gap-2">
+                  <button onClick={clearDemoData} className="rounded-2xl bg-slate-200 px-4 py-3 text-sm font-medium text-slate-700">데모 초기화</button>
+                  <button onClick={() => setView('create')} className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white">새 사안 등록</button>
+                </div>
+              </div>
+            </div>
+
+            {filteredIncidents.map((item) => {
+              const repeatedInThisIncident = item.students.filter((student) => (countsByStudent.find((s) => s.name === student)?.count || 0) >= 2);
+              return (
+                <div key={item.id} className={cardStyle + ' p-5'}>
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Pill>{item.id}</Pill>
+                        <Pill tone={item.severity === '높음' ? 'red' : item.severity === '보통' ? 'amber' : 'green'}>{item.severity}</Pill>
+                        <Pill tone="blue">{item.status}</Pill>
+                        <span className="text-sm text-slate-500">{item.datetime.replace('T', ' ')}</span>
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {item.places.map((place) => <Pill key={place} tone="slate">📍 {place}</Pill>)}
+                        {item.types.map((type) => <Pill key={type} tone="blue">🏷 {type}</Pill>)}
+                      </div>
+
+                      <div className="mt-4">
+                        <div className="mb-2 text-sm font-semibold text-slate-700">관련 학생</div>
+                        <div className="flex flex-wrap gap-2">
+                          {item.students.map((student) => {
+                            const count = countsByStudent.find((s) => s.name === student)?.count || 0;
+                            return <Pill key={student} tone={count >= 3 ? 'red' : count >= 2 ? 'amber' : 'slate'}>{student}</Pill>;
+                          })}
+                        </div>
+                        {repeatedInThisIncident.length > 0 && (
+                          <div className="mt-2 text-xs text-red-600">반복 등장 학생: {repeatedInThisIncident.join(', ')}</div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <div className="flex gap-2">
+                          <button onClick={() => startEdit(item)} className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white">수정</button>
+                          <button onClick={() => deleteIncident(item.id)} className="rounded-2xl bg-red-600 px-4 py-3 text-sm font-medium text-white">삭제</button>
+                        </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                    <div className="rounded-2xl bg-slate-50 p-4">
+                      <div className="mb-2 text-sm font-semibold text-slate-700">구체적 상황</div>
+                      <div className="text-sm leading-7 text-slate-600 whitespace-pre-wrap">{item.description}</div>
+                    </div>
+                    <div className="rounded-2xl bg-slate-50 p-4">
+                      <div className="mb-2 text-sm font-semibold text-slate-700">후속조치</div>
+                      <div className="text-sm leading-7 text-slate-600 whitespace-pre-wrap">{item.followUp}</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                    <span>작성/추가 교사: {item.writers.join(', ')}</span>
+                    <span>최근 수정일: {item.updatedAt}</span>
+                    {item.note ? <span>비고: {item.note}</span> : null}
+                  </div>
+                </div>
+              );
+            })}
+
+            {!filteredIncidents.length && (
+              <div className={cardStyle + ' p-10 text-center text-sm text-slate-500'}>검색 결과가 없어.</div>
+            )}
+          </div>
+        )}
+
+        {view === 'create' && (
+          <div className={cardStyle + ' p-5 md:p-6'}>
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <div className="text-xl font-bold">{editingId ? '사안 수정' : '사안 등록'}</div>
+                <div className="mt-1 text-sm text-slate-500">사안발생장소 / 사안유형은 한 영역에서 복수 선택 가능</div>
+              </div>
+              {editingId ? (
+                <button onClick={resetForm} className="rounded-2xl bg-slate-200 px-4 py-3 text-sm font-medium text-slate-700">수정 취소</button>
+              ) : null}
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <div>
+                <div className="mb-2 text-sm font-semibold text-slate-700">사안발생일시</div>
+                <input
+                  type="datetime-local"
+                  value={form.datetime}
+                  onChange={(e) => setForm({ ...form, datetime: e.target.value })}
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none"
+                />
+              </div>
+              <div>
+                <div className="mb-2 text-sm font-semibold text-slate-700">심각도</div>
+                <select
+                  value={form.severity}
+                  onChange={(e) => setForm({ ...form, severity: e.target.value })}
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none"
+                >
+                  {severityOptions.map((option) => <option key={option}>{option}</option>)}
+                </select>
+              </div>
+              <div>
+                <div className="mb-2 text-sm font-semibold text-slate-700">사안 상태</div>
+                <select
+                  value={form.status}
+                  onChange={(e) => setForm({ ...form, status: e.target.value })}
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none"
+                >
+                  {statusOptions.map((option) => <option key={option}>{option}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-6 xl:grid-cols-2">
+              <CheckboxGrid title="사안발생장소 · 복수 선택" options={placeOptions} selected={places} onToggle={(v) => toggleListValue(v, places, setPlaces)} />
+              <CheckboxGrid title="사안유형 · 복수 선택" options={typeOptions} selected={types} onToggle={(v) => toggleListValue(v, types, setTypes)} />
+            </div>
+
+            <div className="mt-6">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="text-sm font-semibold text-slate-700">관련 학생 · 검색 후 여러 명 선택</div>
+                <Pill tone="blue">{selectedStudents.length}명 선택</Pill>
+              </div>
+              <input
+                value={studentQuery}
+                onChange={(e) => setStudentQuery(e.target.value)}
+                placeholder="학생명 검색"
+                className="mb-3 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none md:max-w-md"
+              />
+              <div className="max-h-64 overflow-auto rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                  {filteredRoster.map((student) => (
+                    <label key={student} className="flex cursor-pointer items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-3 hover:bg-slate-50">
+                      <input
+                        type="checkbox"
+                        checked={selectedStudents.includes(student)}
+                        onChange={() => toggleListValue(student, selectedStudents, setSelectedStudents)}
+                      />
+                      <span className="text-sm text-slate-700">{student}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {selectedStudents.map((student) => <Pill key={student}>{student}</Pill>)}
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+              <div>
+                <div className="mb-2 text-sm font-semibold text-slate-700">구체적 상황 · 공동 작성</div>
+                <textarea
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="여러 교사가 사실 중심으로 이어서 기록하는 영역"
+                  className="min-h-[220px] w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none"
+                />
+              </div>
+              <div>
+                <div className="mb-2 text-sm font-semibold text-slate-700">후속조치 · 공동 작성</div>
+                <textarea
+                  value={form.followUp}
+                  onChange={(e) => setForm({ ...form, followUp: e.target.value })}
+                  placeholder="면담, 상담 연계, 보호자 연락, 추적관찰 등을 공동으로 기록"
+                  className="min-h-[220px] w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <div className="mb-2 text-sm font-semibold text-slate-700">비고</div>
+              <input
+                value={form.note}
+                onChange={(e) => setForm({ ...form, note: e.target.value })}
+                placeholder="선택 입력"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none"
+              />
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button onClick={resetForm} className="rounded-2xl bg-slate-200 px-5 py-3 text-sm font-medium text-slate-700">초기화</button>
+              <button onClick={saveIncident} className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white">{editingId ? '수정 저장' : '사안 등록'}</button>
+            </div>
+          </div>
+        )}
+
+        {view === 'permissions' && (
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className={cardStyle + ' p-5'}>
+              <div className="text-lg font-semibold">접속 제한 방식</div>
+              <div className="mt-4 space-y-3 text-sm leading-7 text-slate-700">
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  구글 로그인 없이, 학교에서 공유한 접속 코드 입력 후 바로 입장
+                </div>
+                <div>접속 코드를 아는 사람만 들어올 수 있는 구조라 초기 운영은 간단해.</div>
+                <div>정식 운영 단계에서는 코드 주기적 변경이나 추가 인증을 붙이는 걸 권장해.</div>
+              </div>
+            </div>
+
+            <div className={cardStyle + ' p-5'}>
+              <div className="text-lg font-semibold">권한 예시</div>
+              <div className="mt-4 space-y-3">
+                {[
+                  ['담임교사', '작성 · 수정 · 열람'],
+                  ['3학년 수업교사', '작성 · 열람'],
+                  ['학년부장교사', '수정 · 열람'],
+                  ['학생부장교사 / 학생부 교사', '수정 · 열람'],
+                  ['상담교사', '후속조치 중심 수정 · 열람'],
+                  ['교감', '전체 열람'],
+                ].map(([r, p]) => (
+                  <div key={r} className="flex items-center justify-between rounded-2xl border border-slate-200 p-4">
+                    <div className="text-sm font-semibold text-slate-800">{r}</div>
+                    <Pill tone="blue">{p}</Pill>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
