@@ -375,10 +375,11 @@
   }
 ];
 
-    const placeOptions = ['교실', '복도', '운동장', '급식실', '특별실', '상담실', '보건실', '교무실', '교외', '기타'];
+    const placeOptions = ['교실', '복도', '운동장', '급식실', '특별실', '상담실', '교무실', '교외', '화장실', '기타'];
     const typeOptions = ['수업방해', '교우갈등', '언어폭력', '신체충돌', '무단이탈/지각', '생활규정위반', '정서/상담', '전자기기사용', '기타'];
     const severityOptions = ['낮음', '보통', '높음'];
     const statusOptions = ['진행중', '조치완료', '추적관찰'];
+    const cardStyle = 'card';
 
     const app = initializeApp(FIREBASE_CONFIG);
     const auth = getAuth(app);
