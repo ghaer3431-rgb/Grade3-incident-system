@@ -626,51 +626,69 @@
       }
 
       if (!isAuthorized) {
-       return React.createElement('div', { className: 'min-h-screen flex items-center justify-center bg-slate-100 p-6' },
-         React.createElement('div', { className: 'w-full max-w-md rounded-[28px] bg-white p-8 shadow-sm border border-slate-200' },
-             React.createElement('div', { className: 'text-sm text-slate-500' }, '학교 코드 기반 접속'),
-             React.createElement('h1', { className: 'mt-2 text-2xl font-bold text-slate-900' }, '3학년 사안 공동 기록 시스템'),
-             React.createElement('p', { className: 'mt-3 text-sm leading-7 text-slate-600' }, '학교에서 공유한 접속 코드와 교사를 선택한 뒤 입장하는 방식이야.'),
+  return React.createElement(
+    'div',
+    { className: 'min-h-screen flex items-center justify-center bg-slate-100 p-6' },
+    React.createElement(
+      'div',
+      { className: 'w-full max-w-md rounded-[28px] bg-white p-8 shadow-sm border border-slate-200' },
+      React.createElement('div', { className: 'text-sm text-slate-500' }, '학교 코드 기반 접속'),
+      React.createElement('h1', { className: 'mt-2 text-2xl font-bold text-slate-900' }, '3학년 사안 공동 기록 시스템'),
+      React.createElement('p', { className: 'mt-3 text-sm leading-7 text-slate-600' }, '학교에서 공유한 접속 코드와 교사를 선택한 뒤 입장하는 방식이야.'),
 
-             React.createElement('div', { className: 'mt-6' },
-               React.createElement('div', { className: 'mb-2 text-sm font-semibold text-slate-700' }, '학교 접속 코드'),
-               React.createElement('input', {
-                 value: inputCode,
-                 onChange: (e) => setInputCode(e.target.value),
+      React.createElement(
+        'div',
+        { className: 'mt-6' },
+        React.createElement('div', { className: 'mb-2 text-sm font-semibold text-slate-700' }, '학교 접속 코드'),
+        React.createElement('input', {
+          value: inputCode,
+          onChange: (e) => setInputCode(e.target.value),
           placeholder: '접속 코드를 입력하세요',
           className: 'w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none'
         })
       ),
 
-      React.createElement('div', { className: 'mt-4' },
+      React.createElement(
+        'div',
+        { className: 'mt-4' },
         React.createElement('div', { className: 'mb-2 text-sm font-semibold text-slate-700' }, '교사 선택'),
-        React.createElement('select', {
+        React.createElement(
+          'select',
+          {
             value: selectedTeacher,
             onChange: (e) => setSelectedTeacher(e.target.value),
             className: 'w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none'
           },
           React.createElement('option', { value: '' }, '선택하세요'),
           ...teacherAccounts.map((t) =>
-            React.createElement('option', { key: t.name, value: t.name }, `${t.name} · ${t.role}`)
+            React.createElement(
+              'option',
+              { key: t.name, value: t.name },
+              `${t.name} · ${t.role}`
+            )
           )
         )
       ),
 
-      React.createElement('button', {
-        onClick: () => {
-          if (inputCode !== SCHOOL_CODE) {
-            alert('학교 코드가 올바르지 않습니다.');
-            return;
-          }
-          if (!selectedTeacher) {
-            alert('교사를 선택해주세요.');
-            return;
-          }
-          setCurrentUser(selectedTeacher);
-          setIsAuthorized(true);
+      React.createElement(
+        'button',
+        {
+          onClick: () => {
+            if (inputCode !== SCHOOL_CODE) {
+              alert('학교 코드가 올바르지 않습니다.');
+              return;
+            }
+            if (!selectedTeacher) {
+              alert('교사를 선택해주세요.');
+              return;
+            }
+            setCurrentUser(selectedTeacher);
+            setIsAuthorized(true);
+          },
+          className: 'mt-5 w-full rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white'
         },
-        className: 'mt-5 w-full rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white'
-      }, '입장하기')
+        '입장하기'
+      )
     )
   );
 }
