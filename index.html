@@ -427,6 +427,10 @@
     }
 
     function App() {
+      const SCHOOL_CODE = "6507800";
+      const [isAuthorized, setIsAuthorized] = useState(false);
+      const [inputCode, setInputCode] = useState("");
+      const [selectedTeacher, setSelectedTeacher] = useState("");
       const [view, setView] = useState('dashboard');
       const [authUser, setAuthUser] = useState(null);
       const [allowedTeacher, setAllowedTeacher] = useState(null);
@@ -621,31 +625,55 @@
         return React.createElement('div', { className: 'min-h-screen flex items-center justify-center text-slate-600' }, '불러오는 중...');
       }
 
-      if (!authUser) {
-        return React.createElement('div', { className: 'min-h-screen flex items-center justify-center p-6' },
-          React.createElement('div', { className: 'card max-w-xl p-8 text-center' },
-            React.createElement('div', { className: 'text-2xl font-bold text-slate-900' }, '3학년 사안 공동 기록 시스템'),
-            React.createElement('p', { className: 'mt-3 text-sm leading-7 text-slate-600' }, 'Google 로그인으로 접속하고, 허용된 교사만 사용할 수 있는 공유형 Firebase 버전이야.'),
-            React.createElement('button', { onClick: signIn, className: 'mt-6 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white' }, 'Google로 로그인')
-          )
-        );
-      }
+      if (!isAuthorized) {
+       return React.createElement('div', { className: 'min-h-screen flex items-center justify-center bg-slate-100 p-6' },
+         React.createElement('div', { className: 'w-full max-w-md rounded-[28px] bg-white p-8 shadow-sm border border-slate-200' },
+             React.createElement('div', { className: 'text-sm text-slate-500' }, '학교 코드 기반 접속'),
+             React.createElement('h1', { className: 'mt-2 text-2xl font-bold text-slate-900' }, '3학년 사안 공동 기록 시스템'),
+             React.createElement('p', { className: 'mt-3 text-sm leading-7 text-slate-600' }, '학교에서 공유한 접속 코드와 교사를 선택한 뒤 입장하는 방식이야.'),
 
-      if (!allowedTeacher) {
-        return React.createElement('div', { className: 'min-h-screen flex items-center justify-center p-6' },
-          React.createElement('div', { className: 'card max-w-xl p-8 text-center' },
-            React.createElement('div', { className: 'text-xl font-bold text-slate-900' }, '허용된 교사 계정이 아니야'),
-            React.createElement('p', { className: 'mt-3 text-sm leading-7 text-slate-600' },
-              `현재 로그인: ${authUser.displayName || ''} / ${authUser.email || ''}`
-            ),
-            React.createElement('p', { className: 'mt-2 text-sm leading-7 text-slate-600' },
-              'teacherAccounts 배열의 email을 실제 교사 이메일로 채우면 더 안전하게 제한할 수 있어.'
-            ),
-            React.createElement('button', { onClick: logOut, className: 'mt-6 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white' }, '로그아웃')
-          )
-        );
-      }
+             React.createElement('div', { className: 'mt-6' },
+               React.createElement('div', { className: 'mb-2 text-sm font-semibold text-slate-700' }, '학교 접속 코드'),
+               React.createElement('input', {
+                 value: inputCode,
+                 onChange: (e) => setInputCode(e.target.value),
+          placeholder: '접속 코드를 입력하세요',
+          className: 'w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none'
+        })
+      ),
 
+      React.createElement('div', { className: 'mt-4' },
+        React.createElement('div', { className: 'mb-2 text-sm font-semibold text-slate-700' }, '교사 선택'),
+        React.createElement('select', {
+            value: selectedTeacher,
+            onChange: (e) => setSelectedTeacher(e.target.value),
+            className: 'w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none'
+          },
+          React.createElement('option', { value: '' }, '선택하세요'),
+          ...teacherAccounts.map((t) =>
+            React.createElement('option', { key: t.name, value: t.name }, `${t.name} · ${t.role}`)
+          )
+        )
+      ),
+
+      React.createElement('button', {
+        onClick: () => {
+          if (inputCode !== SCHOOL_CODE) {
+            alert('학교 코드가 올바르지 않습니다.');
+            return;
+          }
+          if (!selectedTeacher) {
+            alert('교사를 선택해주세요.');
+            return;
+          }
+          setCurrentUser(selectedTeacher);
+          setIsAuthorized(true);
+        },
+        className: 'mt-5 w-full rounded-2xl bg-slate-900 px-5 py-3 text-sm font-medium text-white'
+      }, '입장하기')
+    )
+  );
+}
       return React.createElement('div', { className: 'min-h-screen bg-slate-100 text-slate-900' },
         React.createElement('div', { className: 'mx-auto max-w-7xl p-4 md:p-8' },
           React.createElement('div', { className: 'mb-6 rounded-[28px] bg-gradient-to-r from-slate-900 to-slate-700 p-6 text-white shadow-lg' },
@@ -653,11 +681,17 @@
               React.createElement('div', null,
                 React.createElement('div', { className: 'text-sm text-slate-200' }, '공유형 Firebase 버전 · 삭제 확인창 포함'),
                 React.createElement('h1', { className: 'mt-2 text-2xl font-bold md:text-3xl' }, '3학년 사안 공동 기록 시스템'),
-                React.createElement('p', { className: 'mt-2 text-sm text-slate-200' }, `${allowedTeacher.name} · ${allowedTeacher.role}`)
-              ),
+                React.createElement('p', { className: 'mt-2 text-sm text-slate-200' }, `${currentUser} · ${role}`),
               React.createElement('div', { className: 'flex flex-wrap items-center gap-3' },
-                React.createElement('button', { onClick: seedDemoData, className: 'rounded-2xl bg-white/10 px-4 py-3 text-sm font-medium text-white' }, '예시 사안 추가'),
-                React.createElement('button', { onClick: logOut, className: 'rounded-2xl bg-white px-4 py-3 text-sm font-medium text-slate-900' }, '로그아웃')
+              React.createElement('button', { onClick: seedDemoData, className: 'rounded-2xl bg-white/10 px-4 py-3 text-sm font-medium text-white' }, '예시 사안 추가'),
+React.createElement('button', {
+  onClick: () => {
+    setIsAuthorized(false);
+    setInputCode('');
+    setSelectedTeacher('');
+  },
+  className: 'rounded-2xl bg-white px-4 py-3 text-sm font-medium text-slate-900'
+}, '나가기')  
               )
             )
           ),
