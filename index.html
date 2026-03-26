@@ -780,6 +780,21 @@
         setNotice('코멘트를 등록했어.');
       }
 
+async function deleteCommentFromIncident(incidentId, commentIndex) {
+  const incident = incidents.find((x) => x.id === incidentId);
+  if (!incident) return;
+
+  const nextComments = (incident.comments || []).filter((_, idx) => idx !== commentIndex);
+
+  await updateDoc(doc(db, 'incidents', incidentId), {
+    comments: nextComments,
+    updatedAt: serverTimestamp(),
+    updatedAtText: new Date().toLocaleString('sv-SE').slice(0, 16).replace('T', ' ')
+  });
+
+  setNotice('코멘트를 삭제했어.');
+}
+      
       async function deleteIncident(incidentId) {
         const ok = window.confirm('이 사안을 정말 삭제할까? 삭제 후 복구가 어려울 수 있어.');
         if (!ok) return;
@@ -1008,10 +1023,13 @@
                   React.createElement('span', null, `최근 수정일: ${item.updatedAtText || ''}`)
                 ),
                 React.createElement(CommentBox, {
-                  incidentId: item.id,
-                  comments: item.comments || [],
-                  onAddComment: addCommentToIncident
-                })
+  incidentId: item.id,
+  comments: item.comments || [],
+  onAddComment: addCommentToIncident,
+  onDeleteComment: deleteCommentFromIncident,
+  currentUserEmail: authUser?.email || '',
+  currentUserName: allowedTeacher?.name || authUser?.displayName || ''
+})
                                          
               );
             })
