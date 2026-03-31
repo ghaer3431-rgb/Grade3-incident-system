@@ -1039,7 +1039,7 @@ async function deleteCommentFromIncident(incidentId, commentIndex) {
             React.createElement('div', { className: 'mb-5 text-xl font-bold' }, editingId ? '사안 수정' : '사안 등록'),
             React.createElement('div', { className: 'grid gap-4 md:grid-cols-3' },
               React.createElement('div', null,
-                React.createElement('div', { className: 'mb-2 text-sm font-semibold text-slate-700' }, '사안발생일시'),
+                React.createElement('div', { className: 'mb-2 text-sm font-semibold text-slate-700' }, '사안발생일시(시간까지 입력)'),
                 React.createElement('input', { type: 'datetime-local', value: form.datetime, onChange: (e) => setForm({ ...form, datetime: e.target.value }), className: 'w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none' })
               ),
               React.createElement('div', null,
