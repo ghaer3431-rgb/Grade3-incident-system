@@ -446,7 +446,7 @@
       return '유지';
     }
 
-    function CommentBox({ incidentId, comments, onAddComment, onDeleteComment, currentUserEmail, currentUserName }) {
+    function CommentBox({ incidentId, comments, onAddComment, onDeleteComment, onToggleLike, currentUserEmail, currentUserName }) {
   const [text, setText] = useState('');
 
   return React.createElement('div', { className: 'mt-4 rounded-2xl border border-slate-200 bg-white p-4' },
@@ -476,6 +476,19 @@
                   : null
               ),
               React.createElement('div', { className: 'mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700' }, c.text || '')
+                                React.createElement('div', { className: 'mt-2 flex items-center gap-2' },
+
+  React.createElement('button', {
+    onClick: async () => {
+      await onToggleLike(incidentId, idx);
+    },
+    className: 'flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-1 text-xs hover:bg-slate-200'
+  },
+    '👍',
+    React.createElement('span', null, (c.likes || []).length)
+  )
+
+)
             )
           )
         : [
@@ -764,11 +777,12 @@
         const nextComments = [
           ...(incident.comments || []),
           {
-            writer: allowedTeacher?.name || authUser?.displayName || '교사',
-            writerEmail: authUser?.email || '',
-            text,
-            createdAtText: new Date().toLocaleString('sv-SE').slice(0, 16).replace('T', ' ')
-          }
+  writer: allowedTeacher?.name || authUser?.displayName || '교사',
+  writerEmail: authUser?.email || '',
+  text,
+  likes: [],   // 👈 추가
+  createdAtText: new Date().toLocaleString('sv-SE').slice(0, 16).replace('T', ' ')
+}
         ];
 
         await updateDoc(doc(db, 'incidents', incidentId), {
@@ -793,6 +807,30 @@ async function deleteCommentFromIncident(incidentId, commentIndex) {
   });
 
   setNotice('코멘트를 삭제했어.');
+}
+      async function toggleCommentLike(incidentId, commentIndex) {
+  const incident = incidents.find((x) => x.id === incidentId);
+  if (!incident) return;
+
+  const email = authUser?.email;
+  if (!email) return;
+
+  const nextComments = [...(incident.comments || [])];
+
+  const target = nextComments[commentIndex];
+  const likes = target.likes || [];
+
+  const alreadyLiked = likes.includes(email);
+
+  target.likes = alreadyLiked
+    ? likes.filter((e) => e !== email)
+    : [...likes, email];
+
+  await updateDoc(doc(db, 'incidents', incidentId), {
+    comments: nextComments,
+    updatedAt: serverTimestamp(),
+    updatedAtText: new Date().toLocaleString('sv-SE').slice(0, 16).replace('T', ' ')
+  });
 }
       
       async function deleteIncident(incidentId) {
@@ -1028,7 +1066,8 @@ async function deleteCommentFromIncident(incidentId, commentIndex) {
   onAddComment: addCommentToIncident,
   onDeleteComment: deleteCommentFromIncident,
   currentUserEmail: authUser?.email || '',
-  currentUserName: allowedTeacher?.name || authUser?.displayName || ''
+  currentUserName: allowedTeacher?.name || authUser?.displayName || '',
+                  onToggleLike: toggleCommentLike
 })
                                          
               );
