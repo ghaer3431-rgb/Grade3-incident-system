@@ -47,333 +47,69 @@
     } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
     const FIREBASE_CONFIG = {
- apiKey: "AIzaSyCYvNkgTi92IMNemv3k827wn0Kdof6Jz-Y",
-    authDomain: "grade3-incident-system.firebaseapp.com",
-    projectId: "grade3-incident-system",
-    storageBucket: "grade3-incident-system.firebasestorage.app",
-    messagingSenderId: "995174784022",
-    appId: "1:995174784022:web:7c76012537063c62eea937"
-};
+      apiKey: "AIzaSyCYvNkgTi92IMNemv3k827wn0Kdof6Jz-Y",
+      authDomain: "grade3-incident-system.firebaseapp.com",
+      projectId: "grade3-incident-system",
+      storageBucket: "grade3-incident-system.firebasestorage.app",
+      messagingSenderId: "995174784022",
+      appId: "1:995174784022:web:7c76012537063c62eea937"
+    };
 
     const teacherAccounts = [
-  {
-    "name": "안영석",
-    "role": "교감",
-    "email": "ahnstone69@gmail.com"
-  },
-  {
-    "name": "남승일",
-    "role": "학생부장",
-    "email": "ghaer3431@gmail.com"
-  },
-  {
-    "name": "김지영",
-    "role": "3-1담임",
-    "email": "happykjy1024@gmail.com"
-  },
-  {
-    "name": "최원준",
-    "role": "3-2담임",
-    "email": "nanasuper419@gmail.com"
-  },
-  {
-    "name": "이보람",
-    "role": "3-3담임",
-    "email": ""
-  },
-  {
-    "name": "홍성진",
-    "role": "3-4담임",
-    "email": ""
-  },
-  {
-    "name": "서준원",
-    "role": "3-5담임",
-    "email": ""
-  },
-  {
-    "name": "문대륜",
-    "role": "3-6담임",
-    "email": "jsszzang8817@gmail.com"
-  },
-  {
-    "name": "윤정원",
-    "role": "생활지도담당",
-    "email": "jwgd0911@gmail.com"
-  },
-  {
-    "name": "김현수",
-    "role": "학교폭력담당",
-    "email": "hyeon32112@gmail.com"
-  },
-  {
-    "name": "하초연",
-    "role": "안전담당",
-    "email": "chdus0723@gmail.com"
-  },
-  {
-    "name": "신향미",
-    "role": "자치담당",
-    "email": "vision4620@gmail.com"
-  },
-  {
-    "name": "서예향",
-    "role": "3학년국어",
-    "email": "seoyehyang@gmail.com"
-  },
-  {
-    "name": "김현지",
-    "role": "3학년수학",
-    "email": "hyunji1037@gmail.com"
-  },
-  {
-    "name": "양수민",
-    "role": "3학년수학",
-    "email": "sumin8468@gmail.com"
-  },
-  {
-    "name": "정아람",
-    "role": "3학년사회",
-    "email": "aram9001@gmail.com"
-  },
-  {
-    "name": "김영화",
-    "role": "3학년과학",
-    "email": "y2kh3851@gmail.com"
-  },
-  {
-    "name": "김영미",
-    "role": "3학년영어",
-    "email": "jessekym2026@gmail.com"
-  },
-  {
-    "name": "박찬영",
-    "role": "3학년가정",
-    "email": ""
-  },
-  {
-    "name": "최승숙",
-    "role": "전문상담사",
-    "email": "suk060401@gmail.com"
-  },
-  {
-    "name": "김윤지",
-    "role": "3학년미술",
-    "email": "gyongpoart@gmail.com"
-  }
-];
+      { "name": "안영석", "role": "교감", "email": "ahnstone69@gmail.com" },
+      { "name": "남승일", "role": "학생부장", "email": "ghaer3431@gmail.com" },
+      { "name": "김지영", "role": "3-1담임", "email": "happykjy1024@gmail.com" },
+      { "name": "최원준", "role": "3-2담임", "email": "nanasuper419@gmail.com" },
+      { "name": "이보람", "role": "3-3담임", "email": "" },
+      { "name": "홍성진", "role": "3-4담임", "email": "" },
+      { "name": "서준원", "role": "3-5담임", "email": "" },
+      { "name": "문대륜", "role": "3-6담임", "email": "jsszzang8817@gmail.com" },
+      { "name": "윤정원", "role": "생활지도담당", "email": "jwgd0911@gmail.com" },
+      { "name": "김현수", "role": "학교폭력담당", "email": "hyeon32112@gmail.com" },
+      { "name": "하초연", "role": "안전담당", "email": "chdus0723@gmail.com" },
+      { "name": "신향미", "role": "자치담당", "email": "vision4620@gmail.com" },
+      { "name": "서예향", "role": "3학년국어", "email": "seoyehyang@gmail.com" },
+      { "name": "김현지", "role": "3학년수학", "email": "hyunji1037@gmail.com" },
+      { "name": "양수민", "role": "3학년수학", "email": "sumin8468@gmail.com" },
+      { "name": "정아람", "role": "3학년사회", "email": "aram9001@gmail.com" },
+      { "name": "김영화", "role": "3학년과학", "email": "y2kh3851@gmail.com" },
+      { "name": "김영미", "role": "3학년영어", "email": "jessekym2026@gmail.com" },
+      { "name": "박찬영", "role": "3학년가정", "email": "" },
+      { "name": "최승숙", "role": "전문상담사", "email": "suk060401@gmail.com" },
+      { "name": "김윤지", "role": "3학년미술", "email": "gyongpoart@gmail.com" }
+    ];
+
     const rosterSeed = [
-  "3-1 강다원",
-  "3-1 강민석",
-  "3-1 강인혁",
-  "3-1 김가현",
-  "3-1 김경모",
-  "3-1 김고은",
-  "3-1 김동현",
-  "3-1 김민재",
-  "3-1 김수연",
-  "3-1 김지유",
-  "3-1 김태윤",
-  "3-1 박민준",
-  "3-1 박정환",
-  "3-1 신하랑",
-  "3-1 엄재빈",
-  "3-1 윤상효",
-  "3-1 이도연",
-  "3-1 이동헌",
-  "3-1 이서연",
-  "3-1 이서진",
-  "3-1 이소미",
-  "3-1 이찬희",
-  "3-1 전소희",
-  "3-1 정민영",
-  "3-1 정주영",
-  "3-1 최승원",
-  "3-1 한시윤",
-  "3-1 황연하",
-  "3-2 강하랑",
-  "3-2 권태현",
-  "3-2 김경모",
-  "3-2 김동희",
-  "3-2 김민채",
-  "3-2 김부승",
-  "3-2 김송현",
-  "3-2 김유빈",
-  "3-2 김정훈",
-  "3-2 김준성",
-  "3-2 김진서",
-  "3-2 박성욱",
-  "3-2 박시현",
-  "3-2 오진호",
-  "3-2 이소율",
-  "3-2 이승재",
-  "3-2 이윤제",
-  "3-2 이지후",
-  "3-2 이채민",
-  "3-2 이효준",
-  "3-2 전성현",
-  "3-2 정연주",
-  "3-2 조세훈",
-  "3-2 조예서",
-  "3-2 지예림",
-  "3-2 최수현",
-  "3-2 최승우",
-  "3-2 하예준",
-  "3-2 홍성찬",
-  "3-3 고주혁",
-  "3-3 권지언",
-  "3-3 김단아",
-  "3-3 김도연",
-  "3-3 김도한",
-  "3-3 김범준",
-  "3-3 김송연",
-  "3-3 김은우",
-  "3-3 김태연",
-  "3-3 김하민",
-  "3-3 문준우",
-  "3-3 박정원",
-  "3-3 박하율",
-  "3-3 배연호",
-  "3-3 서호탁",
-  "3-3 안해수",
-  "3-3 이봄",
-  "3-3 이예준",
-  "3-3 이종빈",
-  "3-3 이하랑",
-  "3-3 임은준",
-  "3-3 전원태",
-  "3-3 조연서",
-  "3-3 최양인",
-  "3-3 최용순",
-  "3-3 최율채",
-  "3-3 최재성",
-  "3-3 홍도윤",
-  "3-4 곽찬희",
-  "3-4 김강이",
-  "3-4 김건우",
-  "3-4 김경모",
-  "3-4 김남연",
-  "3-4 김시윤",
-  "3-4 김유현",
-  "3-4 김태영",
-  "3-4 김필기",
-  "3-4 김형준",
-  "3-4 백태겸",
-  "3-4 성현우",
-  "3-4 심현서",
-  "3-4 양서진",
-  "3-4 오은영",
-  "3-4 오채민",
-  "3-4 유정우",
-  "3-4 이예님",
-  "3-4 이정윤",
-  "3-4 이준겸",
-  "3-4 장수아",
-  "3-4 장이실",
-  "3-4 정유빈",
-  "3-4 조한결",
-  "3-4 조훈희",
-  "3-4 천지유",
-  "3-4 최상무",
-  "3-4 최우영",
-  "3-4 LI VERONIKA",
-  "3-5 권현찬",
-  "3-5 김영호",
-  "3-5 김정경",
-  "3-5 김주빈",
-  "3-5 박성원",
-  "3-5 박수민",
-  "3-5 박시우",
-  "3-5 박찬균",
-  "3-5 방인혁",
-  "3-5 방준서",
-  "3-5 서예원",
-  "3-5 심가람",
-  "3-5 심혜성",
-  "3-5 오인태",
-  "3-5 이나윤",
-  "3-5 이재은",
-  "3-5 이준서",
-  "3-5 임지용",
-  "3-5 장동국",
-  "3-5 장현아",
-  "3-5 전소연",
-  "3-5 정지원",
-  "3-5 조명은",
-  "3-5 조윤성",
-  "3-5 조홍성",
-  "3-5 최서은",
-  "3-5 최우리",
-  "3-5 최준우",
-  "3-6 권대연",
-  "3-6 김동리",
-  "3-6 김동하",
-  "3-6 김무건",
-  "3-6 김서윤",
-  "3-6 김윤아",
-  "3-6 김지환",
-  "3-6 김하온",
-  "3-6 김현우",
-  "3-6 박시우",
-  "3-6 박정욱",
-  "3-6 박주연",
-  "3-6 박지운",
-  "3-6 변건수",
-  "3-6 송영서",
-  "3-6 엄윤희",
-  "3-6 우지형",
-  "3-6 윤현아",
-  "3-6 이소영",
-  "3-6 이주하",
-  "3-6 임채원",
-  "3-6 정구찬",
-  "3-6 정지형",
-  "3-6 최가은",
-  "3-6 최우진",
-  "3-6 최유정",
-  "3-6 최종윤",
-  "3-6 최지우"
-];
+      "3-1 강다원", "3-1 강민석", "3-1 강인혁", "3-1 김가현", "3-1 김경모", "3-1 김고은", "3-1 김동현", "3-1 김민재", "3-1 김수연", "3-1 김지유", "3-1 김태윤", "3-1 박민준", "3-1 박정환", "3-1 신하랑", "3-1 엄재빈", "3-1 윤상효", "3-1 이도연", "3-1 이동헌", "3-1 이서연", "3-1 이서진", "3-1 이소미", "3-1 이찬희", "3-1 전소희", "3-1 정민영", "3-1 정주영", "3-1 최승원", "3-1 한시윤", "3-1 황연하",
+      "3-2 강하랑", "3-2 권태현", "3-2 김경모", "3-2 김동희", "3-2 김민채", "3-2 김부승", "3-2 김송현", "3-2 김유빈", "3-2 김정훈", "3-2 김준성", "3-2 김진서", "3-2 박성욱", "3-2 박시현", "3-2 오진호", "3-2 이소율", "3-2 이승재", "3-2 이윤제", "3-2 이지후", "3-2 이채민", "3-2 이효준", "3-2 전성현", "3-2 정연주", "3-2 조세훈", "3-2 조예서", "3-2 지예림", "3-2 최수현", "3-2 최승우", "3-2 하예준", "3-2 홍성찬",
+      "3-3 고주혁", "3-3 권지언", "3-3 김단아", "3-3 김도연", "3-3 김도한", "3-3 김범준", "3-3 김송연", "3-3 김은우", "3-3 김태연", "3-3 김하민", "3-3 문준우", "3-3 박정원", "3-3 박하율", "3-3 배연호", "3-3 서호탁", "3-3 안해수", "3-3 이봄", "3-3 이예준", "3-3 이종빈", "3-3 이하랑", "3-3 임은준", "3-3 전원태", "3-3 조연서", "3-3 최양인", "3-3 최용순", "3-3 최율채", "3-3 최재성", "3-3 홍도윤",
+      "3-4 곽찬희", "3-4 김강이", "3-4 김건우", "3-4 김경모", "3-4 김남연", "3-4 김시윤", "3-4 김유현", "3-4 김태영", "3-4 김필기", "3-4 김형준", "3-4 백태겸", "3-4 성현우", "3-4 심현서", "3-4 양서진", "3-4 오은영", "3-4 오채민", "3-4 유정우", "3-4 이예님", "3-4 이정윤", "3-4 이준겸", "3-4 장수아", "3-4 장이실", "3-4 정유빈", "3-4 조한결", "3-4 조훈희", "3-4 천지유", "3-4 최상무", "3-4 최우영", "3-4 LI VERONIKA",
+      "3-5 권현찬", "3-5 김영호", "3-5 김정경", "3-5 김주빈", "3-5 박성원", "3-5 박수민", "3-5 박시우", "3-5 박찬균", "3-5 방인혁", "3-5 방준서", "3-5 서예원", "3-5 심가람", "3-5 심혜성", "3-5 오인태", "3-5 이나윤", "3-5 이재은", "3-5 이준서", "3-5 임지용", "3-5 장동국", "3-5 장현아", "3-5 전소연", "3-5 정지원", "3-5 조명은", "3-5 조윤성", "3-5 조홍성", "3-5 최서은", "3-5 최우리", "3-5 최준우",
+      "3-6 권대연", "3-6 김동리", "3-6 김동하", "3-6 김무건", "3-6 김서윤", "3-6 김윤아", "3-6 김지환", "3-6 김하온", "3-6 김현우", "3-6 박시우", "3-6 박정욱", "3-6 박주연", "3-6 박지운", "3-6 변건수", "3-6 송영서", "3-6 엄윤희", "3-6 우지형", "3-6 윤현아", "3-6 이소영", "3-6 이주하", "3-6 임채원", "3-6 정구찬", "3-6 정지형", "3-6 최가은", "3-6 최우진", "3-6 최유정", "3-6 최종윤", "3-6 최지우"
+    ];
+
     const seedIncidents = [
-  {
-    "datetime": "2026-03-23T10:20",
-    "places": [
-      "교실",
-      "복도"
-    ],
-    "types": [
-      "수업방해",
-      "교우갈등"
-    ],
-    "students": [
-      "3-1 강다원",
-      "3-1 강민석",
-      "3-1 강인혁"
-    ],
-    "severity": "보통",
-    "status": "진행중",
-    "description": "3교시 전후 학생 간 언쟁이 있었고, 수업 시작 후에도 자리 이동 및 큰 소리 대화가 이어져 학습 분위기를 저해함.",
-    "followUp": "담임교사와 3학년 수업교사가 각각 면담 실시. 다음날 상담교사 연계 예정."
-  },
-  {
-    "datetime": "2026-03-22T12:35",
-    "places": [
-      "급식실"
-    ],
-    "types": [
-      "교우갈등",
-      "언어폭력"
-    ],
-    "students": [
-      "3-3 김도연",
-      "3-3 김도한"
-    ],
-    "severity": "높음",
-    "status": "추적관찰",
-    "description": "점심시간 대기 중 언어적 충돌이 있었고 주변 학생들이 개입하면서 상황이 확대됨.",
-    "followUp": "생활지도담당 초기 분리 지도 후 담임교사, 상담교사 면담 실시. 일주일간 추적관찰."
-  }
-];
+      {
+        "datetime": "2026-03-23T10:20",
+        "places": ["교실", "복도"],
+        "types": ["수업방해", "교우갈등"],
+        "students": ["3-1 강다원", "3-1 강민석", "3-1 강인혁"],
+        "severity": "보통",
+        "status": "진행중",
+        "description": "3교시 전후 학생 간 언쟁이 있었고, 수업 시작 후에도 자리 이동 및 큰 소리 대화가 이어져 학습 분위기를 저해함.",
+        "followUp": "담임교사와 3학년 수업교사가 각각 면담 실시. 다음날 상담교사 연계 예정."
+      },
+      {
+        "datetime": "2026-03-22T12:35",
+        "places": ["급식실"],
+        "types": ["교우갈등", "언어폭력"],
+        "students": ["3-3 김도연", "3-3 김도한"],
+        "severity": "높음",
+        "status": "추적관찰",
+        "description": "점심시간 대기 중 언어적 충돌이 있었고 주변 학생들이 개입하면서 상황이 확대됨.",
+        "followUp": "생활지도담당 초기 분리 지도 후 담임교사, 상담교사 면담 실시. 일주일간 추적관찰."
+      }
+    ];
 
     const placeOptions = ['교실', '복도', '운동장', '급식실', '특별실', '상담실', '교무실', '교외', '화장실', '기타'];
     const typeOptions = ['수업방해', '교우갈등', '언어폭력', '신체충돌', '무단이탈/지각', '생활규정위반', '정서/상담', '전자기기사용', '기타'];
@@ -441,79 +177,77 @@
 
     function getStudentTrendLabel(prevCount, recentCount) {
       if (prevCount >= 2 && recentCount === 0) return '성장중';
-      if (recentCount > prevCount) return '주의';
-      if (recentCount < prevCount) return '개선';
+      if (prevCount >= 2 && recentCount > 0 && recentCount < prevCount) return '개선';
+      if (recentCount >= 2 && recentCount > prevCount) return '주의';
       return '유지';
     }
 
     function CommentBox({ incidentId, comments, onAddComment, onDeleteComment, onToggleLike, currentUserEmail, currentUserName }) {
-  const [text, setText] = useState('');
+      const [text, setText] = useState('');
 
-  return React.createElement('div', { className: 'mt-4 rounded-2xl border border-slate-200 bg-white p-4' },
-    React.createElement('div', { className: 'mb-3 text-sm font-semibold text-slate-700' }, '지도방안 코멘트'),
-    React.createElement('div', { className: 'space-y-2' },
-      ...(comments && comments.length
-        ? comments.map((c, idx) =>
-            React.createElement('div', { key: idx, className: 'rounded-2xl bg-slate-50 px-3 py-3' },
-              React.createElement('div', { className: 'flex items-start justify-between gap-3' },
-                React.createElement('div', null,
-                  React.createElement('div', { className: 'text-xs text-slate-500' },
-                    `${c.writer || '익명'} · ${c.createdAtText || ''}`
-                  )
-                ),
-                (
-                  c.writerEmail === currentUserEmail ||
-                  c.writer === currentUserName
-                )
-                  ? React.createElement('button', {
+      return React.createElement('div', { className: 'mt-4 rounded-2xl border border-slate-200 bg-white p-4' },
+        React.createElement('div', { className: 'mb-3 text-sm font-semibold text-slate-700' }, '지도방안 코멘트'),
+        React.createElement('div', { className: 'space-y-2' },
+          ...(comments && comments.length
+            ? comments.map((c, idx) =>
+                React.createElement('div', { key: idx, className: 'rounded-2xl bg-slate-50 px-3 py-3' },
+                  React.createElement('div', { className: 'flex items-start justify-between gap-3' },
+                    React.createElement('div', null,
+                      React.createElement('div', { className: 'text-xs text-slate-500' },
+                        `${c.writer || '익명'} · ${c.createdAtText || ''}`
+                      )
+                    ),
+                    (
+                      c.writerEmail === currentUserEmail ||
+                      c.writer === currentUserName
+                    )
+                      ? React.createElement('button', {
+                          onClick: async () => {
+                            const ok = window.confirm('이 코멘트를 삭제할까?');
+                            if (!ok) return;
+                            await onDeleteComment(incidentId, idx);
+                          },
+                          className: 'shrink-0 rounded-xl bg-red-50 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-100'
+                        }, '삭제')
+                      : null
+                  ),
+                  React.createElement('div', { className: 'mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700' }, c.text || ''),
+                  React.createElement('div', { className: 'mt-2 flex items-center gap-2' },
+                    React.createElement('button', {
                       onClick: async () => {
-                        const ok = window.confirm('이 코멘트를 삭제할까?');
-                        if (!ok) return;
-                        await onDeleteComment(incidentId, idx);
+                        await onToggleLike(incidentId, idx);
                       },
-                      className: 'shrink-0 rounded-xl bg-red-50 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-100'
-                    }, '삭제')
-                  : null
-              ),
-              React.createElement('div', { className: 'mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700' }, c.text || ''), 
-                                React.createElement('div', { className: 'mt-2 flex items-center gap-2' },
-
-  React.createElement('button', {
-    onClick: async () => {
-      await onToggleLike(incidentId, idx);
-    },
-    className: 'flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-1 text-xs hover:bg-slate-200'
-  },
-    '👍',
-    React.createElement('span', null, (c.likes || []).length)
-  )
-
-)
-            )
-          )
-        : [
-            React.createElement('div', { key: 'empty', className: 'text-sm text-slate-400' }, '아직 등록된 코멘트가 없어요.')
-          ])
-    ),
-    React.createElement('div', { className: 'mt-3 flex flex-col gap-2 md:flex-row' },
-      React.createElement('textarea', {
-        value: text,
-        onChange: (e) => setText(e.target.value),
-        placeholder: '지도방안, 관찰 의견, 협의 내용을 남겨주세요.',
-        className: 'min-h-[90px] flex-1 rounded-2xl border border-slate-200 px-4 py-3 outline-none'
-      }),
-      React.createElement('button', {
-        onClick: async () => {
-          const trimmed = text.trim();
-          if (!trimmed) return;
-          await onAddComment(incidentId, trimmed);
-          setText('');
-        },
-        className: 'rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white md:self-end'
-      }, '코멘트 등록')
-    )
-  );
-}
+                      className: 'flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-1 text-xs hover:bg-slate-200'
+                    },
+                      '👍',
+                      React.createElement('span', null, (c.likes || []).length)
+                    )
+                  )
+                )
+              )
+            : [
+                React.createElement('div', { key: 'empty', className: 'text-sm text-slate-400' }, '아직 등록된 코멘트가 없어요.')
+              ])
+        ),
+        React.createElement('div', { className: 'mt-3 flex flex-col gap-2 md:flex-row' },
+          React.createElement('textarea', {
+            value: text,
+            onChange: (e) => setText(e.target.value),
+            placeholder: '지도방안, 관찰 의견, 협의 내용을 남겨주세요.',
+            className: 'min-h-[90px] flex-1 rounded-2xl border border-slate-200 px-4 py-3 outline-none'
+          }),
+          React.createElement('button', {
+            onClick: async () => {
+              const trimmed = text.trim();
+              if (!trimmed) return;
+              await onAddComment(incidentId, trimmed);
+              setText('');
+            },
+            className: 'rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white md:self-end'
+          }, '코멘트 등록')
+        )
+      );
+    }
 
     function Pill({ children, tone = 'slate' }) {
       return React.createElement('span', { className: `pill pill-${tone}` }, children);
@@ -623,7 +357,9 @@
       const inProgressCount = incidents.filter((i) => i.status === '진행중').length;
       const highCount = incidents.filter((i) => i.severity === '높음').length;
       const repeatedStudents = countsByStudent.filter((s) => s.count >= 2).length;
+      const repeatedStudentsList = countsByStudent.filter((s) => s.count >= 2);
       const recentWeekKeys = useMemo(() => getLastNWeekKeys(4), []);
+
       const weeklyTrend = useMemo(() => {
         const base = {};
         recentWeekKeys.forEach((k) => base[k] = 0);
@@ -769,7 +505,7 @@
         resetForm();
         setView('incidents');
       }
-            
+
       async function addCommentToIncident(incidentId, text) {
         const incident = incidents.find((x) => x.id === incidentId);
         if (!incident) return;
@@ -777,12 +513,12 @@
         const nextComments = [
           ...(incident.comments || []),
           {
-  writer: allowedTeacher?.name || authUser?.displayName || '교사',
-  writerEmail: authUser?.email || '',
-  text,
-  likes: [],   // 👈 추가
-  createdAtText: new Date().toLocaleString('sv-SE').slice(0, 16).replace('T', ' ')
-}
+            writer: allowedTeacher?.name || authUser?.displayName || '교사',
+            writerEmail: authUser?.email || '',
+            text,
+            likes: [],
+            createdAtText: new Date().toLocaleString('sv-SE').slice(0, 16).replace('T', ' ')
+          }
         ];
 
         await updateDoc(doc(db, 'incidents', incidentId), {
@@ -794,45 +530,44 @@
         setNotice('코멘트를 등록했어.');
       }
 
-async function deleteCommentFromIncident(incidentId, commentIndex) {
-  const incident = incidents.find((x) => x.id === incidentId);
-  if (!incident) return;
+      async function deleteCommentFromIncident(incidentId, commentIndex) {
+        const incident = incidents.find((x) => x.id === incidentId);
+        if (!incident) return;
 
-  const nextComments = (incident.comments || []).filter((_, idx) => idx !== commentIndex);
+        const nextComments = (incident.comments || []).filter((_, idx) => idx !== commentIndex);
 
-  await updateDoc(doc(db, 'incidents', incidentId), {
-    comments: nextComments,
-    updatedAt: serverTimestamp(),
-    updatedAtText: new Date().toLocaleString('sv-SE').slice(0, 16).replace('T', ' ')
-  });
+        await updateDoc(doc(db, 'incidents', incidentId), {
+          comments: nextComments,
+          updatedAt: serverTimestamp(),
+          updatedAtText: new Date().toLocaleString('sv-SE').slice(0, 16).replace('T', ' ')
+        });
 
-  setNotice('코멘트를 삭제했어.');
-}
+        setNotice('코멘트를 삭제했어.');
+      }
+
       async function toggleCommentLike(incidentId, commentIndex) {
-  const incident = incidents.find((x) => x.id === incidentId);
-  if (!incident) return;
+        const incident = incidents.find((x) => x.id === incidentId);
+        if (!incident) return;
 
-  const email = authUser?.email;
-  if (!email) return;
+        const email = authUser?.email;
+        if (!email) return;
 
-  const nextComments = [...(incident.comments || [])];
+        const nextComments = [...(incident.comments || [])];
+        const target = nextComments[commentIndex];
+        const likes = target.likes || [];
+        const alreadyLiked = likes.includes(email);
 
-  const target = nextComments[commentIndex];
-  const likes = target.likes || [];
+        target.likes = alreadyLiked
+          ? likes.filter((e) => e !== email)
+          : [...likes, email];
 
-  const alreadyLiked = likes.includes(email);
+        await updateDoc(doc(db, 'incidents', incidentId), {
+          comments: nextComments,
+          updatedAt: serverTimestamp(),
+          updatedAtText: new Date().toLocaleString('sv-SE').slice(0, 16).replace('T', ' ')
+        });
+      }
 
-  target.likes = alreadyLiked
-    ? likes.filter((e) => e !== email)
-    : [...likes, email];
-
-  await updateDoc(doc(db, 'incidents', incidentId), {
-    comments: nextComments,
-    updatedAt: serverTimestamp(),
-    updatedAtText: new Date().toLocaleString('sv-SE').slice(0, 16).replace('T', ' ')
-  });
-}
-      
       async function deleteIncident(incidentId) {
         const ok = window.confirm('이 사안을 정말 삭제할까? 삭제 후 복구가 어려울 수 있어.');
         if (!ok) return;
@@ -922,8 +657,7 @@ async function deleteCommentFromIncident(incidentId, commentIndex) {
             )
           ),
 
-                    view === 'dashboard' ? React.createElement('div', { className: 'space-y-6' },
-
+          view === 'dashboard' ? React.createElement('div', { className: 'space-y-6' },
             React.createElement('div', { className: 'grid gap-6 lg:grid-cols-2' },
               React.createElement('div', { className: cardStyle + ' p-5' },
                 React.createElement('div', { className: 'mb-4 text-lg font-semibold' }, '최근 4주 사안 추세'),
@@ -958,12 +692,14 @@ async function deleteCommentFromIncident(incidentId, commentIndex) {
               React.createElement('div', { className: cardStyle + ' p-5' },
                 React.createElement('div', { className: 'mb-4 text-lg font-semibold' }, '반복 등장 학생'),
                 React.createElement('div', { className: 'space-y-3' },
-                  ...countsByStudent.slice(0, 8).map((student) =>
-                    React.createElement('div', { key: student.name, className: 'flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3' },
-                      React.createElement('div', { className: 'text-sm font-medium text-slate-700' }, student.name),
-                      React.createElement(Pill, { tone: student.count >= 3 ? 'red' : student.count >= 2 ? 'amber' : 'blue' }, `${student.count}건`)
-                    )
-                  )
+                  ...(repeatedStudentsList.length
+                    ? repeatedStudentsList.slice(0, 8).map((student) =>
+                        React.createElement('div', { key: student.name, className: 'flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3' },
+                          React.createElement('div', { className: 'text-sm font-medium text-slate-700' }, student.name),
+                          React.createElement(Pill, { tone: student.count >= 3 ? 'red' : 'amber' }, `${student.count}건`)
+                        )
+                      )
+                    : [React.createElement('div', { key: 'empty-repeat', className: 'text-sm text-slate-400' }, '반복 등장 학생이 없어요.')])
                 )
               ),
 
@@ -1061,15 +797,14 @@ async function deleteCommentFromIncident(incidentId, commentIndex) {
                   React.createElement('span', null, `최근 수정일: ${item.updatedAtText || ''}`)
                 ),
                 React.createElement(CommentBox, {
-  incidentId: item.id,
-  comments: item.comments || [],
-  onAddComment: addCommentToIncident,
-  onDeleteComment: deleteCommentFromIncident,
-  currentUserEmail: authUser?.email || '',
-  currentUserName: allowedTeacher?.name || authUser?.displayName || '',
+                  incidentId: item.id,
+                  comments: item.comments || [],
+                  onAddComment: addCommentToIncident,
+                  onDeleteComment: deleteCommentFromIncident,
+                  currentUserEmail: authUser?.email || '',
+                  currentUserName: allowedTeacher?.name || authUser?.displayName || '',
                   onToggleLike: toggleCommentLike
-})
-                                         
+                })
               );
             })
           ) : null,
@@ -1131,7 +866,7 @@ async function deleteCommentFromIncident(incidentId, commentIndex) {
             )
           ) : null,
 
-                            React.createElement('div', {
+          React.createElement('div', {
             className: 'fixed bottom-4 right-4 text-xs text-slate-400 pointer-events-none'
           }, 'copyrighted by 승이루T')
         )
