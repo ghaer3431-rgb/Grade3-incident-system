@@ -326,7 +326,7 @@
 
       useEffect(() => {
         if (!allowedTeacher) return;
-        const q = collection(db, 'incidents');
+        const q = query(collection(db, 'incidents'), orderBy('datetime', 'desc'));
         const unsub = onSnapshot(q, (snapshot) => {
           const rows = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
           setIncidents(rows);
